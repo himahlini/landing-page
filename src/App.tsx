@@ -18,6 +18,7 @@ import {
   ArrowLeft
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import type { ReactNode } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useParams, useLocation } from "react-router-dom";
 
 const practices = [
@@ -103,6 +104,8 @@ const practices = [
   }
 ];
 
+const pageShell = "max-w-7xl mx-auto px-8 lg:px-12";
+
 const ScrollToTop = () => {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -119,7 +122,7 @@ const SectionHeader = ({
   className = ""
 }: { 
   label?: string; 
-  title: React.ReactNode; 
+  title: ReactNode; 
   as?: "h1" | "h2"; 
   light?: boolean;
   className?: string;
@@ -145,7 +148,7 @@ const Navbar = () => {
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-bg/90 backdrop-blur-sm border-b border-border">
-      <div className="max-w-7xl mx-auto px-8 lg:px-12 py-8 flex justify-between items-center">
+      <div className={`${pageShell} py-8 flex justify-between items-center`}>
         <Link to="/" className="flex items-center gap-4 group">
           <span className="font-serif text-xl tracking-[0.2em] font-semibold text-primary uppercase transition-opacity group-hover:opacity-70">
             Himahlini & Co
@@ -209,39 +212,47 @@ const Hero = () => {
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
 
   return (
-    <section ref={ref} className="relative min-h-[100svh] flex flex-col justify-start lg:justify-center pt-48 pb-32 lg:py-32 px-8 lg:px-24 overflow-hidden bg-bg">
-      <div className="max-w-4xl relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <SectionHeader 
-            as="h1"
-            label="Established 1995 • Kuala Lumpur, Malaysia"
-            title={<>Got a Legal Problem? <br/>We'll Help You Sort It Out.</>}
-            light
-          />
-          <p className="font-sans text-lg md:text-xl text-accent leading-relaxed max-w-xl mb-16 font-normal">
-            Whether it's a business dispute, company restructuring, debt recovery, or a defamation claim — our lawyers are here to guide you from start to finish. No confusion, no runaround.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-6">
-            <button className="bg-primary text-bg px-12 py-5 font-sans text-md transition-opacity hover:opacity-90">
-              Talk to a lawyer
-            </button>
-            <button className="border border-primary text-primary px-12 py-5 font-sans text-[11px] tracking-[0.3em] uppercase transition-colors hover:bg-white/50">
-              Firm Profile
-            </button>
-          </div>
-        </motion.div>
+    <section ref={ref} className="relative min-h-[100svh] overflow-hidden bg-bg">
+      <div className={`${pageShell} relative z-10 pt-48 pb-32 lg:py-32 min-h-[100svh] flex items-center`}>
+        <div className="grid w-full items-center gap-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            className="max-w-4xl"
+          >
+            <SectionHeader 
+              as="h1"
+              label="Established 1995 • Kuala Lumpur, Malaysia"
+              title={<>Got a Legal Problem? <br/>We'll Help You Sort It Out.</>}
+              light
+            />
+            <p className="font-sans text-lg md:text-xl text-accent leading-relaxed max-w-xl mb-16 font-normal">
+              Whether it's a business dispute, company restructuring, debt recovery, or a defamation claim — our lawyers are here to guide you from start to finish. No confusion, no runaround.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-6">
+              <a
+                href="#contact"
+                className="bg-primary text-bg px-12 py-5 font-sans text-md transition-opacity hover:opacity-90 inline-flex items-center gap-4"
+              >
+                <span>Talk to a lawyer</span>
+                <ChevronRight size={16} strokeWidth={1.8} />
+              </a>
+            </div>
+          </motion.div>
+        </div>
       </div>
 
-      <motion.div style={{ y }} className="absolute right-0 top-0 w-1/3 h-full opacity-10 pointer-events-none grayscale hidden lg:block">
+      <motion.div
+        style={{ y }}
+        className="absolute right-0 top-0 h-full w-[min(44vw,760px)] max-w-[760px] min-w-[300px] pointer-events-none grayscale hidden lg:block"
+      >
+        <div className="absolute inset-0 bg-bg/50" />
         <img 
-          src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=2070" 
+          src="https://www.liveabout.com/thmb/I8tsq4QEhabZIEscs5ju-3Znkq4=/750x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/midsection-of-judge-and-client-sitting-at-table-in-office-1068572802-5eaaf75c680b483b94641975f2c98553.jpg" 
           alt="Architecture"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-center"
         />
       </motion.div>
 
@@ -255,6 +266,22 @@ const Hero = () => {
 const Expertise = () => {
   return (
     <section id="services" className="bg-bg border-t border-border">
+      <div className="border-b border-border">
+        <div className={`${pageShell} py-12 md:py-16`}>
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] gap-10 lg:gap-16 items-end max-w-6xl">
+            <div>
+              <div className="h-px w-16 bg-primary mb-6" />
+              <h2 className="text-4xl md:text-6xl lg:text-7xl font-serif leading-[0.95] tracking-tight text-primary">
+                Practice Areas
+              </h2>
+            </div>
+            <p className="font-sans text-sm md:text-base lg:text-lg leading-relaxed text-accent max-w-2xl">
+              We help businesses and individuals across litigation, restructuring, insolvency, and reputation matters with clear, focused advice.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {practices.map((practice, idx) => (
           <Link 
@@ -283,7 +310,7 @@ const Expertise = () => {
 const Story = () => {
   return (
     <section id="about" className="py-40 bg-bg">
-      <div className="max-w-7xl mx-auto px-8 lg:px-12">
+      <div className={pageShell}>
         <div className="flex flex-col lg:flex-row gap-32 items-start">
           <div className="lg:w-1/2">
             <SectionHeader 
@@ -297,16 +324,7 @@ const Story = () => {
               <p>
                 We do not strive for volume; we strive for depth. Every case is treated with the same intellectual rigor and unwavering commitment to ethical excellence.
               </p>
-              <div className="flex gap-20 pt-8 border-t border-border">
-                <div>
-                  <div className="text-3xl font-serif mb-1 text-primary">28+</div>
-                  <div className="text-[11px] uppercase tracking-widest font-medium">Years</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-serif mb-1 text-primary">50+</div>
-                  <div className="text-[11px] uppercase tracking-widest font-medium">Specialists</div>
-                </div>
-              </div>
+              
             </div>
           </div>
           <div className="lg:w-1/2 w-full">
@@ -328,7 +346,7 @@ const Story = () => {
 const Contact = () => {
   return (
     <section id="contact" className="py-40 bg-bg border-t border-border">
-      <div className="max-w-7xl mx-auto px-8 lg:px-12">
+      <div className={pageShell}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-32">
           <div>
             <SectionHeader title="Connect with us." />
@@ -345,7 +363,7 @@ const Contact = () => {
                 <span className="font-sans text-xs tracking-wider uppercase text-accent font-semibold">Direct Communication</span>
                 <div className="font-sans text-base text-primary space-y-1">
                   <p>03-6201 9938</p>
-                  <p>contact@harispartners.legal</p>
+                  <p>contact@himahlinico.com</p>
                 </div>
               </div>
             </div>
@@ -367,8 +385,8 @@ const Contact = () => {
                 <label className="text-[11px] uppercase tracking-[0.3em] text-accent">Brief Inquiry</label>
                 <textarea rows={4} className="w-full bg-transparent border-b border-border py-4 focus:outline-none focus:border-primary transition-colors resize-none text-sm font-sans"></textarea>
               </div>
-              <button className="bg-primary text-bg w-full py-6 text-xs font-bold uppercase tracking-[0.4em] transition-opacity hover:opacity-90">
-                Send Notification
+              <button className="bg-primary text-bg w-full py-6 text-md font-bold uppercase transition-opacity hover:opacity-90">
+                Send message
               </button>
             </form>
           </div>
@@ -407,7 +425,7 @@ const People = () => {
 
   return (
     <section id="people" className="py-40 bg-bg border-t border-border">
-      <div className="max-w-7xl mx-auto px-8 lg:px-12">
+      <div className={pageShell}>
         <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-8">
           <div className="max-w-2xl">
             <SectionHeader 
@@ -466,7 +484,7 @@ const PracticeDetail = () => {
       exit={{ opacity: 0 }}
       className="pt-40 pb-32 bg-bg min-h-screen"
     >
-      <div className="max-w-7xl mx-auto px-8 lg:px-12">
+      <div className={pageShell}>
         <Link to="/" className="inline-flex items-center gap-4 group mb-16 text-xs font-sans tracking-[0.3em] uppercase text-accent hover:text-primary transition-colors">
           <ArrowLeft size={16} />
           Back to Overview
@@ -550,7 +568,7 @@ const Home = () => (
 
 const Footer = () => (
   <footer className="bg-bg border-t border-border py-12 px-8 lg:px-12">
-    <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 font-sans text-[11px] tracking-[0.3em] uppercase text-accent">
+    <div className={`${pageShell} flex flex-col md:flex-row justify-between items-center gap-8 font-sans text-[11px] tracking-[0.3em] uppercase text-accent`}>
       <div className="flex items-center gap-8">
         <span className="text-primary font-serif text-base tracking-normal normal-case">Himahlini & Co</span>
         <span className="opacity-60 text-primary">© {new Date().getFullYear()} • Kuala Lumpur</span>
