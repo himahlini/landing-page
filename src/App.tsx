@@ -130,7 +130,7 @@ const SectionHeader = ({
         {label}
       </span>
     )}
-    <Component className={`text-2xl md:text-4xl lg:text-[52px] leading-[1.1] ${light ? 'font-light' : 'font-serif'} text-primary`}>
+    <Component className={`text-2xl md:text-4xl lg:text-5xl leading-[1.1] ${light ? 'font-normal' : 'font-serif'} text-primary`}>
       {title}
     </Component>
   </div>
@@ -222,13 +222,13 @@ const Hero = () => {
             title={<>Got a Legal Problem? <br/>We'll Help You Sort It Out.</>}
             light
           />
-          <p className="font-sans text-lg md:text-xl text-accent leading-relaxed max-w-xl mb-16 font-light">
-            A premium legal council dedicated to providing sophisticated counsel to Malaysia’s leading enterprises with unwavering integrity.
+          <p className="font-sans text-lg md:text-xl text-accent leading-relaxed max-w-xl mb-16 font-normal">
+            Whether it's a business dispute, company restructuring, debt recovery, or a defamation claim — our lawyers are here to guide you from start to finish. No confusion, no runaround.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6">
-            <button className="bg-primary text-bg px-12 py-5 font-sans text-[11px] tracking-[0.3em] uppercase transition-opacity hover:opacity-90">
-              Consult Our Partners
+            <button className="bg-primary text-bg px-12 py-5 font-sans text-md transition-opacity hover:opacity-90">
+              Talk to a lawyer
             </button>
             <button className="border border-primary text-primary px-12 py-5 font-sans text-[11px] tracking-[0.3em] uppercase transition-colors hover:bg-white/50">
               Firm Profile
@@ -268,7 +268,7 @@ const Expertise = () => {
             </div>
             <div>
               <h3 className="text-2xl font-serif text-primary mb-4 transition-colors group-hover:text-primary">{practice.title}</h3>
-              <p className="font-sans text-sm text-accent leading-relaxed font-light">
+              <p className="font-sans text-sm text-accent leading-relaxed font-normal">
                 {practice.desc}
               </p>
             </div>
@@ -288,9 +288,9 @@ const Story = () => {
           <div className="lg:w-1/2">
             <SectionHeader 
               label="The Firm"
-              title={<>Founded on Truth. <br />Sustained by Results.</>}
+              title={<>Trusted Corporate Lawyers in KL <br />Since 1995</>}
             />
-            <div className="space-y-8 text-accent font-light leading-relaxed font-sans text-sm max-w-md">
+            <div className="space-y-8 text-accent font-normal leading-relaxed font-sans text-sm max-w-md">
               <p>
                 Established in 1995, Himahlini & Co represents the intersection of Malaysian legacy and global legal standards. Our practice is built on the belief that clarity is the ultimate form of sophistication.
               </p>
@@ -381,14 +381,16 @@ const Contact = () => {
 const People = () => {
   const team = [
     {
-      name: "Himahlini A/P M. Ramalingam @ Yalumallai",
+      // name: "Himahlini A/P M. Ramalingam @ Yalumallai",
+      name: "Himahlini",
       role: "Managing Partner",
       credentials: "LLB (Hons) University of Malaya",
       bio: "Advocate & Solicitor of the High Court of Malaya since May 2005",
       image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=1000"
     },
     {
-      name: "Aiman Haqeem Al Sadat bin Zyed Al Sadat",
+      // name: "Aiman Haqeem Al Sadat bin Zyed Al Sadat",
+      name: "Aiman Haqeem",
       role: "Partner",
       credentials: "LLB (Hons) Universiti Teknologi MARA",
       bio: "Advocate & Solicitor of the High Court of Malaya since October 2021",
@@ -414,7 +416,7 @@ const People = () => {
               className="mb-0"
             />
           </div>
-          <p className="text-accent max-w-sm font-sans text-sm font-light leading-relaxed mb-12">
+          <p className="text-accent max-w-sm font-sans text-sm font-normal leading-relaxed mb-12">
             Our multi-disciplinary team combines local depth with global litigation standards.
           </p>
         </div>
@@ -436,7 +438,7 @@ const People = () => {
                 <span className="block mb-1 text-primary">{lawyer.role}</span>
                 {lawyer.credentials}
               </div>
-              <p className="text-accent font-sans text-xs leading-relaxed font-normal">
+              <p className="text-accent font-sans text-sm leading-relaxed font-normal">
                 {lawyer.bio}
               </p>
             </motion.div>
@@ -487,8 +489,8 @@ const PracticeDetail = () => {
                   to={`/practice/${prevPractice.slug}`}
                   className="flex flex-col gap-2 group max-w-[150px]"
                 >
-                  <span className="text-[8px] uppercase tracking-[0.3em] text-accent group-hover:text-primary transition-colors">Previous</span>
-                  <span className="text-xs font-serif text-primary lowercase font-light group-hover:opacity-70 transition-opacity">
+                  <span className="text-xs uppercase text-accent group-hover:text-primary transition-colors">Previous</span>
+                  <span className="text-sm font-serif text-primary lowercase font-normal group-hover:opacity-70 transition-opacity">
                     {prevPractice.title}
                   </span>
                 </Link>
@@ -499,8 +501,8 @@ const PracticeDetail = () => {
                   to={`/practice/${nextPractice.slug}`}
                   className="flex flex-col gap-2 group text-right max-w-[150px]"
                 >
-                  <span className="text-[8px] uppercase tracking-[0.3em] text-accent group-hover:text-primary transition-colors">Next Area</span>
-                  <span className="text-xs font-serif text-primary lowercase font-light group-hover:opacity-70 transition-opacity">
+                  <span className="text-xs uppercase text-accent group-hover:text-primary transition-colors">Next Area</span>
+                  <span className="text-sm font-serif text-primary lowercase font-normal group-hover:opacity-70 transition-opacity">
                     {nextPractice.title}
                   </span>
                 </Link>
