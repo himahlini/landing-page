@@ -18,3 +18,17 @@ View your app in AI Studio: https://ai.studio/apps/eda7e8b2-b387-4175-aada-c7a36
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## Deploy to Cloudflare Pages
+
+1. Build, prerender, and deploy:
+   `npm run deploy:cf`
+
+This keeps the Vue SSR app working on Cloudflare Pages by prerendering the known routes into static HTML before upload.
+
+## Deploy to Cloudflare Pages
+
+1. Build and deploy:
+   `npm run deploy:cf`
+
+The app uses a Cloudflare Pages fallback rewrite so client-side routes like `/practice/corporate-litigation` continue to load correctly after deployment.

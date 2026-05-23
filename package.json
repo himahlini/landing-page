@@ -9,6 +9,7 @@
     "preview": "NODE_ENV=production node server.js",
     "clean": "rm -rf dist",
     "start": "NODE_ENV=production node server.js",
+    "deploy:cf": "npm run build && node scripts/prerender.mjs && npx wrangler pages deploy dist/client --project-name himahlini-tapau",
     "lint": "vue-tsc --noEmit"
   },
   "dependencies": {
