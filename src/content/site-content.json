@@ -1,0 +1,203 @@
+{
+  "siteMetadata": {
+    "name": "Himahlini & Co",
+    "established": 1995,
+    "location": "Kuala Lumpur, Malaysia",
+    "shortLocation": "Kuala Lumpur",
+    "tagline": "Corporate Legal Problems? We'll Help You Sort It Out.",
+    "description": "Whether it's a business dispute, company restructuring, debt recovery, or a defamation claim — our lawyers are here to guide you from start to finish. No confusion, no runaround.",
+    "quote": "In the courtroom of truth, the simplest argument is the most effective. We strive to be the voice of reason across the Malaysian legal landscape.",
+    "quoteAttribution": "Himahlini, Managing Partner"
+  },
+  "navigation": {
+    "items": [
+      {
+        "label": "Services",
+        "href": "/#services"
+      },
+      {
+        "label": "About",
+        "href": "/about#about"
+      },
+      {
+        "label": "People",
+        "href": "/about#people"
+      },
+      {
+        "label": "Contact",
+        "href": "/#contact"
+      }
+    ],
+    "consultationLabel": "Consultation"
+  },
+  "hero": {
+    "label": "Established 1995 • Kuala Lumpur, Malaysia",
+    "title": {
+      "primary": "Corporate Legal Problems?",
+      "secondary": "We'll Help You Sort It Out."
+    },
+    "description": "Whether it's a business dispute, company restructuring, debt recovery, or a defamation claim — our lawyers are here to guide you from start to finish. No confusion, no runaround.",
+    "cta": {
+      "label": "Talk to a lawyer",
+      "href": "#contact"
+    },
+    "image": {
+      "src": "https://www.liveabout.com/thmb/I8tsq4QEhabZIEscs5ju-3Znkq4=/750x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/midsection-of-judge-and-client-sitting-at-table-in-office-1068572802-5eaaf75c680b483b94641975f2c98553.jpg",
+      "alt": "Architecture"
+    }
+  },
+  "practiceOverview": {
+    "label": "Practice Areas",
+    "description": "We help businesses and individuals across litigation, restructuring, insolvency, and reputation matters with clear, focused advice."
+  },
+  "practiceAreas": [
+    {
+      "id": "01",
+      "slug": "corporate-litigation",
+      "title": "Corporate Litigation",
+      "description": "Strategic representation in complex corporate disputes and shareholder conflicts.",
+      "detailedDescription": "Our Corporate Litigation practice is dedicated to resolving complex disputes that arise within the corporate framework. We represent major corporations, boards of directors, and shareholders in high-stakes litigation involving fiduciary duty breaches, shareholder activism, and post-M&A disputes.\n\nKey areas of focus include:\n• Board and Special Committee advisory\n• Derivative actions and class action defense\n• Proxy contests and control contests\n• Internal investigations and regulatory compliance\n\nWe combine deep legal knowledge with a sharp understanding of business realities to deliver results that protect our clients' interests and corporate reputation.",
+      "image": "https://images.unsplash.com/photo-1505664194779-8beaceb93744?auto=format&fit=crop&q=80&w=2070"
+    },
+    {
+      "id": "02",
+      "slug": "commercial-litigation",
+      "title": "Commercial Litigation",
+      "description": "Resolving high-stakes commercial disputes with precision and rigorous advocacy.",
+      "detailedDescription": "In the realm of Commercial Litigation, Himahlini & Co provides aggressive and sophisticated advocacy for businesses across diverse industries. We handle a wide range of commercial conflicts, from breach of contract claims to complex business torts.\n\nOur expertise covers:\n• Contractual and joint venture disputes\n• Intellectual property and non-compete litigation\n• Consumer protection and product liability\n• Professional malpractice defense\n\nWe approach each case with the goal of achieving the most favorable outcome, whether through trial, arbitration, or strategic settlement negotiations.",
+      "image": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=2070"
+    },
+    {
+      "id": "03",
+      "slug": "corporate-restructuring",
+      "title": "Corporate Restructuring",
+      "description": "Navigating complex financial reorganizations to protect enterprise value.",
+      "detailedDescription": "Our Corporate Restructuring team assists companies, creditors, and stakeholders in navigating financial distress. We provide strategic advice on both out-of-court workouts and court-supervised reorganizations designed to stabilize operations and maximize recovery.\n\nOur services include:\n• Debt restructuring and recapitalization strategies\n• Asset divestiture and distressed M&A\n• Representation in Chapter 11 and international insolvency proceedings\n• Board advisory on insolvency duties\n\nWe specialize in creating innovative solutions that allow businesses to emerge stronger from challenging financial environments.",
+      "image": "https://images.unsplash.com/photo-1454165833767-027ffea7028c?auto=format&fit=crop&q=80&w=2070"
+    },
+    {
+      "id": "04",
+      "slug": "corporate-insolvency",
+      "title": "Corporate Insolvency",
+      "description": "Comprehensive advisory on insolvency proceedings, receiverships, and liquidations.",
+      "detailedDescription": "Himahlini & Co offers profound expertise in Corporate Insolvency, acting for liquidators, receivers, and troubled entities. We manage the delicate balance between creditor rights and asset preservation during formal insolvency procedures.\n\nOur comprehensive support includes:\n• Voluntary and compulsory liquidations\n• Receiverships and special administrations\n• Recovery of assets and clawback actions\n• Cross-border insolvency coordination\n\nWe ensure that all processes are conducted with total transparency and in strict adherence to Malaysian and international legal standards.",
+      "image": "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80&w=2070"
+    },
+    {
+      "id": "05",
+      "slug": "defamation",
+      "title": "Defamation",
+      "description": "Protecting individual and corporate reputations against unlawful communications.",
+      "detailedDescription": "Reputation is a priceless asset. Our Defamation practice helps individuals and corporations defend their honor in an increasingly digital world. We provide swift and decisive action against libel and slander across all media platforms.\n\nOur focus areas:\n• Pre-publication advice and risk management\n• Digital defamation and cyber-libel mitigation\n• Representation in high-profile defamation trials\n• Strategic crisis communication advisory\n\nWe act with discretion and force to ensure that false statements are addressed and reputations are vindicated.",
+      "image": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070"
+    }
+  ],
+  "about": {
+    "label": "The Firm",
+    "title": "Trusted Corporate Lawyers in KL Since 1995",
+    "titleLines": [
+      "Trusted Corporate Lawyers in KL",
+      "Since 1995"
+    ],
+    "description": [
+      "Established in 1995, Himahlini & Co represents the intersection of Malaysian legacy and global legal standards. Our practice is built on the belief that clarity is the ultimate form of sophistication.",
+      "We do not strive for volume; we strive for depth. Every case is treated with the same intellectual rigor and unwavering commitment to ethical excellence."
+    ],
+    "image": {
+      "src": "https://images.unsplash.com/photo-1505664194779-8beaceb93744?auto=format&fit=crop&q=80&w=2070",
+      "alt": "Lawyer's study"
+    }
+  },
+  "people": {
+    "label": "Our People",
+    "title": "Experience that defines excellence.",
+    "description": "Our multi-disciplinary team combines local depth with global litigation standards.",
+    "members": [
+      {
+        "name": "Himahlini",
+        "role": "Managing Partner",
+        "credentials": "LLB (Hons) University of Malaya",
+        "bio": "Advocate & Solicitor of the High Court of Malaya since May 2005. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+        "image": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=1000"
+      },
+      {
+        "name": "Aiman Haqeem",
+        "role": "Partner",
+        "credentials": "LLB (Hons) Universiti Teknologi MARA",
+        "bio": "Advocate & Solicitor of the High Court of Malaya since October 2021. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Proin eget tortor risus, sed porttitor lectus nibh, in fermentum massa justo sit amet risus.",
+        "image": "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=1000"
+      },
+      {
+        "name": "Lee Jia Rou",
+        "role": "Associate",
+        "credentials": "LLB (Hons) Multimedia University",
+        "bio": "Advocate & Solicitor of the High Court of Malaya since April 2024. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Vivamus suscipit tortor eget felis porttitor volutpat, curabitur arcu erat, accumsan id imperdiet et.",
+        "image": "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=1000"
+      }
+    ]
+  },
+  "contact": {
+    "label": "Connect with us.",
+    "office": {
+      "label": "Our Office",
+      "address": "M-1-14, Block M, No.60, Jalan Sri Hartamas 1, Taman Sri Hartamas, 50480 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur"
+    },
+    "communication": {
+      "label": "Direct Communication",
+      "phone": "03-6201 9938",
+      "email": "contact@himahlinico.com"
+    },
+    "form": {
+      "fields": [
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "text"
+        },
+        {
+          "name": "email",
+          "label": "Email",
+          "type": "email"
+        },
+        {
+          "name": "briefInquiry",
+          "label": "Brief Inquiry",
+          "type": "textarea",
+          "rows": 4
+        }
+      ],
+      "submitLabel": "Send message"
+    }
+  },
+  "footer": {
+    "brand": "Himahlini & Co",
+    "copyright": "© CURRENT_YEAR • Kuala Lumpur",
+    "links": [
+      {
+        "label": "Privacy",
+        "href": "#"
+      },
+      {
+        "label": "Terms",
+        "href": "#"
+      }
+    ]
+  },
+  "detailPage": {
+    "notFoundMessage": "Practice Area Not Found",
+    "backLabel": "Back to Overview",
+    "previousLabel": "Previous",
+    "nextLabel": "Next Area",
+    "ctaLabel": "Talk to a lawyer"
+  },
+  "routes": [
+    {
+      "path": "/",
+      "type": "home"
+    },
+    {
+      "path": "/practice/:slug",
+      "type": "practiceDetail"
+    }
+  ]
+}
