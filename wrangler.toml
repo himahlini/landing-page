@@ -2,15 +2,10 @@ name = "himahlini"
 pages_build_output_dir = "dist/client"
 
 [vars]
-CLOUDFLARE_PRODUCTION_URL = "https://himahlini-1t2.pages.dev"
-CLOUDFLARE_PREVIEW_URL = "https://cms-preview.himahlini-tapau.pages.dev"
-CLOUDFLARE_PAGES_PROJECT = "himahlini"
-CLOUDFLARE_PAGES_PREVIEW_BRANCH = "cms-preview"
 GITHUB_DEPLOY_OWNER = "himahlini"
 GITHUB_DEPLOY_REPO = "landing-page"
 GITHUB_DEPLOY_WORKFLOW = "deploy.yml"
 GITHUB_DEPLOY_REF = "main"
-R2_PUBLIC_URL = "https://pub-758dabe967bf41228cdf30446f283b1c.r2.dev"
 
 [[d1_databases]]
 binding = "DB"

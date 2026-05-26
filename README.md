@@ -46,15 +46,10 @@ Cloudflare Pages dashboard:
 
 The non-secret Cloudflare Pages values are already defined in [`wrangler.toml`](/Users/syazany/Projects/himahlini-tapau/wrangler.toml):
 
-- `CLOUDFLARE_PRODUCTION_URL`
-- `CLOUDFLARE_PREVIEW_URL`
-- `CLOUDFLARE_PAGES_PROJECT`
-- `CLOUDFLARE_PAGES_PREVIEW_BRANCH`
 - `GITHUB_DEPLOY_OWNER`
 - `GITHUB_DEPLOY_REPO`
 - `GITHUB_DEPLOY_WORKFLOW`
 - `GITHUB_DEPLOY_REF`
-- `R2_PUBLIC_URL`
 
 The workflow writes a temporary `.env` file for Wrangler and then runs the same CMS-aware deploy command used locally.
 
@@ -98,6 +93,6 @@ Required environment variables for `/admin`:
 - `CMS_ADMIN_PASSWORD`
 - `GITHUB_DEPLOY_TOKEN`
 - `CLOUDFLARE_PRODUCTION_URL`
-- `CLOUDFLARE_PREVIEW_URL`
+- `R2_PUBLIC_URL`
 
 `CLOUDFLARE_DEPLOY_HOOK_URL` and `CLOUDFLARE_PREVIEW_DEPLOY_HOOK_URL` are legacy preview-hook values and are no longer used by the current deploy flow.
