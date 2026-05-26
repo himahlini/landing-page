@@ -6,6 +6,7 @@ GITHUB_DEPLOY_OWNER = "himahlini"
 GITHUB_DEPLOY_REPO = "landing-page"
 GITHUB_DEPLOY_WORKFLOW = "deploy.yml"
 GITHUB_DEPLOY_REF = "main"
+R2_BUCKET_NAME = "himahlini-assets"
 
 [[d1_databases]]
 binding = "DB"

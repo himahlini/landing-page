@@ -9,12 +9,11 @@ type User = {
   email: string;
 };
 
-type CmsJob = {
-  id: string;
-  type: "deploy";
-  status: "queued" | "running" | "success" | "failed";
-  deployment_url: string | null;
-  message: string | null;
+type UploadSession = {
+  key: string;
+  url: string;
+  uploadUrl: string;
+  headers?: Record<string, string>;
 };
 
 const email = ref("");
@@ -52,21 +51,32 @@ const requestJson = async <T>(url: string, options: RequestInit = {}) => {
   return body as T;
 };
 
-const requestForm = async <T>(url: string, body: FormData) => {
-  const response = await fetch(url, {
-    method: "POST",
-    credentials: "include",
-    body
+const uploadToSignedUrl = async (file: File, upload: UploadSession) => {
+  const response = await fetch(upload.uploadUrl, {
+    method: "PUT",
+    headers: upload.headers,
+    body: file
   });
 
-  const payload = (await response.json().catch(() => null)) as T | { error?: string } | null;
-
   if (!response.ok) {
-    throw new Error((payload as { error?: string } | null)?.error ?? "Upload failed.");
+    throw new Error("Upload failed.");
   }
-
-  return payload as T;
 };
+
+const previewAlt = (label: string) => `${label} preview`;
+
+const previewClass = (url: string) =>
+  url ? "bg-slate-50 text-slate-500 cursor-not-allowed" : "bg-slate-50 text-slate-400";
+
+const requestUpload = async (file: File) =>
+  requestJson<UploadSession>("/api/assets/upload", {
+    method: "POST",
+    body: JSON.stringify({
+      filename: file.name,
+      contentType: file.type,
+      size: file.size
+    })
+  });
 
 const loadSession = async () => {
   loading.value = true;
@@ -84,9 +94,9 @@ const loadSession = async () => {
 };
 
 const loadContent = async () => {
-    const response = await requestJson<{ content: SiteContent }>("/api/content");
-    content.value = structuredClone(response.content);
-    draftReady.value = false;
+  const response = await requestJson<{ content: SiteContent }>("/api/content");
+  content.value = structuredClone(response.content);
+  draftReady.value = false;
 };
 
 const login = async () => {
@@ -151,10 +161,9 @@ const uploadImage = async (event: Event, assignUrl: (url: string) => void) => {
   message.value = "";
 
   try {
-    const formData = new FormData();
-    formData.set("file", file);
-    const response = await requestForm<{ url: string }>("/api/assets/upload", formData);
-    assignUrl(response.url);
+    const upload = await requestUpload(file);
+    await uploadToSignedUrl(file, upload);
+    assignUrl(upload.url);
     draftReady.value = false;
     message.value = "Image uploaded. Save draft to preview it.";
   } catch (caught) {
@@ -305,12 +314,15 @@ onMounted(loadSession);
             <label><span>Description</span><textarea v-model="content.hero.description" rows="4" /></label>
             <label><span>CTA Label</span><input v-model="content.hero.cta.label" /></label>
             <label><span>CTA Link</span><input v-model="content.hero.cta.href" /></label>
-            <label><span>Image URL</span><input v-model="content.hero.image.src" /></label>
+            <label><span>Image URL</span><input :value="content.hero.image.src" readonly :class="previewClass(content.hero.image.src)" /></label>
             <label class="upload-control">
               <span>Upload Image</span>
               <input type="file" accept="image/*" :disabled="uploading" @change="uploadImage($event, (url) => content.hero.image.src = url)" />
               <Upload :size="16" />
             </label>
+            <div v-if="content.hero.image.src" class="image-preview">
+              <img :src="content.hero.image.src" :alt="content.hero.image.alt || previewAlt(content.hero.title.primary)" />
+            </div>
             <label><span>Image Alt</span><input v-model="content.hero.image.alt" /></label>
           </div>
 
@@ -343,12 +355,15 @@ onMounted(loadSession);
               <label><span>Title</span><input v-model="practice.title" /></label>
               <label><span>Description</span><textarea v-model="practice.description" rows="3" /></label>
               <label><span>Detailed Description</span><textarea v-model="practice.detailedDescription" rows="8" /></label>
-              <label><span>Image URL</span><input v-model="practice.image" /></label>
+              <label><span>Image URL</span><input :value="practice.image" readonly :class="previewClass(practice.image)" /></label>
               <label class="upload-control">
                 <span>Upload Image</span>
                 <input type="file" accept="image/*" :disabled="uploading" @change="uploadImage($event, (url) => practice.image = url)" />
                 <Upload :size="16" />
               </label>
+              <div v-if="practice.image" class="image-preview">
+                <img :src="practice.image" :alt="previewAlt(practice.title)" />
+              </div>
             </div>
           </div>
 
@@ -372,12 +387,15 @@ onMounted(loadSession);
               <textarea v-model="content.about.description[index]" rows="4" />
               <button class="danger" @click="removeString(content.about.description, index)"><Trash2 :size="16" /></button>
             </div>
-            <label><span>Image URL</span><input v-model="content.about.image.src" /></label>
+            <label><span>Image URL</span><input :value="content.about.image.src" readonly :class="previewClass(content.about.image.src)" /></label>
             <label class="upload-control">
               <span>Upload Image</span>
               <input type="file" accept="image/*" :disabled="uploading" @change="uploadImage($event, (url) => content.about.image.src = url)" />
               <Upload :size="16" />
             </label>
+            <div v-if="content.about.image.src" class="image-preview">
+              <img :src="content.about.image.src" :alt="content.about.image.alt || previewAlt(content.about.title)" />
+            </div>
             <label><span>Image Alt</span><input v-model="content.about.image.alt" /></label>
           </div>
 
@@ -398,12 +416,15 @@ onMounted(loadSession);
               <label><span>Role</span><input v-model="person.role" /></label>
               <label><span>Credentials</span><input v-model="person.credentials" /></label>
               <label><span>Bio</span><textarea v-model="person.bio" rows="6" /></label>
-              <label><span>Image URL</span><input v-model="person.image" /></label>
+              <label><span>Image URL</span><input :value="person.image" readonly :class="previewClass(person.image)" /></label>
               <label class="upload-control">
                 <span>Upload Image</span>
                 <input type="file" accept="image/*" :disabled="uploading" @change="uploadImage($event, (url) => person.image = url)" />
                 <Upload :size="16" />
               </label>
+              <div v-if="person.image" class="image-preview">
+                <img :src="person.image" :alt="previewAlt(person.name)" />
+              </div>
             </div>
           </div>
 
@@ -517,5 +538,18 @@ onMounted(loadSession);
   border: 0;
   cursor: pointer;
   padding: 0;
+}
+
+.image-preview {
+  border: 1px solid #cbd5e1;
+  overflow: hidden;
+  max-width: 22rem;
+}
+
+.image-preview img {
+  display: block;
+  width: 100%;
+  max-height: 16rem;
+  object-fit: cover;
 }
 </style>
