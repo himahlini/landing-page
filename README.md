@@ -27,12 +27,15 @@ This repo is set up to deploy from GitHub Actions on pushes to `main`.
 
 The CMS `Deploy` button does not wait for the deployment to finish. It saves/publishes the D1 snapshot, dispatches the GitHub workflow, and then shows a simple "deploy started" message.
 
-Required GitHub repository secrets for the workflow:
+Required GitHub repository variable values for the workflow:
 
 - `CLOUDFLARE_ACCOUNT_ID`
-- `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_D1_DATABASE_ID`
 - `CLOUDFLARE_PRODUCTION_URL`
+
+Required GitHub repository secret values for the workflow:
+
+- `CLOUDFLARE_API_TOKEN`
 
 `CMS_DEPLOY_CALLBACK_TOKEN` is no longer required.
 

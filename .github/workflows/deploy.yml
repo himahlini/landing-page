@@ -33,14 +33,16 @@ jobs:
       - name: Write Wrangler env file
         shell: bash
         env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ vars.CLOUDFLARE_D1_DATABASE_ID }}
+          CLOUDFLARE_PRODUCTION_URL: ${{ vars.CLOUDFLARE_PRODUCTION_URL }}
         run: |
           {
             printf 'CLOUDFLARE_ACCOUNT_ID=%s\n' "${CLOUDFLARE_ACCOUNT_ID}"
             printf 'CLOUDFLARE_API_TOKEN=%s\n' "${CLOUDFLARE_API_TOKEN}"
             printf 'CLOUDFLARE_D1_DATABASE_ID=%s\n' "${CLOUDFLARE_D1_DATABASE_ID}"
+            printf 'CLOUDFLARE_PRODUCTION_URL=%s\n' "${CLOUDFLARE_PRODUCTION_URL}"
           } > .env
 
       - name: Build and deploy
