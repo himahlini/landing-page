@@ -5,8 +5,27 @@ import type { CmsEnv } from "../../_cms/types";
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"]);
 const maxFileSize = 5 * 1024 * 1024;
 
-const extensionFor = (file: File) => {
-  const nameExtension = file.name.split(".").pop()?.toLowerCase();
+type UploadedImage = {
+  name?: string;
+  size: number;
+  type: string;
+  stream: () => ReadableStream;
+};
+
+const isUploadedImage = (value: unknown): value is UploadedImage =>
+  Boolean(
+    value &&
+      typeof value === "object" &&
+      "size" in value &&
+      "type" in value &&
+      "stream" in value &&
+      typeof value.size === "number" &&
+      typeof value.type === "string" &&
+      typeof value.stream === "function"
+  );
+
+const extensionFor = (file: UploadedImage) => {
+  const nameExtension = file.name?.split(".").pop()?.toLowerCase();
 
   if (nameExtension && /^[a-z0-9]+$/.test(nameExtension)) {
     return nameExtension;
@@ -29,7 +48,7 @@ export const onRequestPost: PagesFunction<CmsEnv> = async ({ request, env }) => 
   const formData = await request.formData();
   const file = formData.get("file");
 
-  if (!(file instanceof File)) {
+  if (!isUploadedImage(file)) {
     return badRequest("Upload requires a file.");
   }
 
