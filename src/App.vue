@@ -31,11 +31,14 @@ const isActiveLink = (href: string) => {
   return route.path === path;
 };
 
-const navLinkClass = (href: string) =>
+const navLinkClass = (href: string, options?: { mobile?: boolean }) =>
   [
     "transition-colors font-medium",
+    options?.mobile ? "inline-flex self-start flex-col gap-3 pb-0" : "",
     isActiveLink(href)
-      ? "text-primary border-b border-primary pb-1"
+      ? options?.mobile
+        ? "text-primary after:block after:h-px after:w-8 after:bg-primary after:content-['']"
+        : "text-primary border-b border-primary pb-1"
       : "text-accent hover:text-primary"
   ].join(" ");
 </script>
@@ -56,14 +59,14 @@ const navLinkClass = (href: string) =>
         </RouterLink>
 
         <div class="hidden md:flex items-center gap-12 font-sans text-xs tracking-[0.3em] uppercase">
-          <RouterLink
-            v-for="item in content.navigation.items"
-            :key="item.label"
-            :to="item.href"
-            :class="navLinkClass(item.href)"
-          >
-            {{ item.label }}
-          </RouterLink>
+        <RouterLink
+          v-for="item in content.navigation.items"
+          :key="item.label"
+          :to="item.href"
+          :class="navLinkClass(item.href)"
+        >
+          {{ item.label }}
+        </RouterLink>
         </div>
 
         <button class="md:hidden text-primary" @click="isOpen = !isOpen">
@@ -80,7 +83,7 @@ const navLinkClass = (href: string) =>
           v-for="item in content.navigation.items"
           :key="item.label"
           :to="item.href"
-          :class="navLinkClass(item.href)"
+          :class="navLinkClass(item.href, { mobile: true })"
           @click="isOpen = false"
         >
           {{ item.label }}
