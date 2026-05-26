@@ -10,6 +10,8 @@ const content = useSiteContent();
 const isOpen = ref(false);
 const route = useRoute();
 const isAdminRoute = computed(() => route.path.startsWith("/admin"));
+const brandTitle = computed(() => content.siteMetadata.name.replace(/\s*&\s*/g, " & "));
+const brandSubtitle = "Advocates & Solicitors";
 
 useRouteSeo(content);
 
@@ -42,10 +44,15 @@ const navLinkClass = (href: string) =>
   <div class="min-h-screen bg-bg selection:bg-primary selection:text-bg">
     <nav v-if="!isAdminRoute" class="fixed top-0 left-0 w-full z-50 bg-bg/90 backdrop-blur-sm border-b border-border">
       <div class="max-w-7xl mx-auto px-8 lg:px-12 py-8 flex justify-between items-center">
-        <RouterLink to="/" class="flex items-center gap-4 group">
-          <span class="font-serif text-xl tracking-[0.2em] font-semibold text-primary uppercase transition-opacity group-hover:opacity-70">
-            {{ content.siteMetadata.name }}
-          </span>
+        <RouterLink to="/" class="group">
+          <div class="flex flex-col text-primary transition-opacity group-hover:opacity-70">
+            <span class="font-sans text-[1.15rem] leading-none tracking-[0.34em] font-light uppercase sm:text-[1.32rem]">
+              {{ brandTitle }}
+            </span>
+            <span class="mt-2 font-sans text-[0.58rem] leading-none tracking-[0.16em] text-primary/90 sm:text-[0.76rem]">
+              {{ brandSubtitle }}
+            </span>
+          </div>
         </RouterLink>
 
         <div class="hidden md:flex items-center gap-12 font-sans text-xs tracking-[0.3em] uppercase">
@@ -90,9 +97,14 @@ const navLinkClass = (href: string) =>
     <footer v-if="!isAdminRoute" class="bg-bg border-t border-border py-12 px-8 lg:px-12">
       <div class="max-w-7xl mx-auto px-8 lg:px-12 flex flex-col md:flex-row justify-between items-center gap-8 font-sans text-[11px] tracking-[0.3em] uppercase text-accent">
         <div class="flex items-center gap-8">
-          <span class="text-primary font-serif text-base tracking-normal normal-case">
-            {{ content.footer.brand }}
-          </span>
+          <div class="flex flex-col text-primary">
+            <span class="font-sans text-[0.9rem] leading-none tracking-[0.24em] font-light uppercase sm:text-[1rem]">
+              {{ brandTitle }}
+            </span>
+            <span class="mt-2 font-sans text-[0.5rem] leading-none tracking-[0.14em] text-primary/90 sm:text-[0.62rem]">
+              {{ brandSubtitle }}
+            </span>
+          </div>
           <span class="opacity-60 text-primary">
             {{ content.footer.copyright.replace("CURRENT_YEAR", String(new Date().getFullYear())) }}
           </span>

@@ -18,6 +18,8 @@ type PageSeo = {
 };
 
 const DEFAULT_ROBOTS = "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1";
+const DEFAULT_OG_IMAGE_PATH = "/og/himahlini-default.jpg";
+const DEFAULT_OG_IMAGE_ALT = "Himahlini & Co brand card with the subtitle Advocates & Solicitors.";
 
 export const normalizePathname = (pathname: string) => {
   try {
@@ -28,6 +30,9 @@ export const normalizePathname = (pathname: string) => {
 };
 
 const trimTrailingSlash = (value: string) => value.replace(/\/+$/, "");
+
+const getAbsoluteAssetUrl = (assetPath: string, siteUrl = getRuntimeSiteUrl()) =>
+  new URL(assetPath, `${siteUrl}/`).toString();
 
 const getRuntimeSiteUrl = () => {
   if (typeof window !== "undefined" && window.location.origin) {
@@ -59,7 +64,7 @@ const getOrganizationSchema = (content: SiteContent, siteUrl: string): Structure
   name: content.siteMetadata.name,
   description: content.siteMetadata.description,
   url: getCanonicalUrl("/", siteUrl),
-  image: content.hero.image.src,
+  image: getAbsoluteAssetUrl(DEFAULT_OG_IMAGE_PATH, siteUrl),
   email: content.contact.communication.email,
   telephone: content.contact.communication.phone,
   foundingDate: String(content.siteMetadata.established),
@@ -77,8 +82,8 @@ export const getPageSeo = (pathname: string, content: SiteContent = defaultSiteC
   const baseSeo = {
     canonicalPath: normalizedPath,
     ogType: "website" as const,
-    ogImage: content.hero.image.src,
-    ogImageAlt: content.hero.image.alt || content.siteMetadata.name
+    ogImage: getAbsoluteAssetUrl(DEFAULT_OG_IMAGE_PATH, siteUrl),
+    ogImageAlt: DEFAULT_OG_IMAGE_ALT
   };
 
   if (normalizedPath === "/") {
