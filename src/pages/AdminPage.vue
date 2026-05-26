@@ -185,24 +185,24 @@ onMounted(loadSession);
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#f6f1ea] text-[#191614] font-sans">
+  <div class="min-h-screen bg-[#f6f1ea] text-slate-800 font-sans">
     <div v-if="loading && !isAuthenticated" class="min-h-screen grid place-items-center">
       <Loader2 class="animate-spin" :size="28" />
     </div>
 
     <div v-else-if="!isAuthenticated" class="min-h-screen grid place-items-center px-6">
-      <form class="w-full max-w-sm border border-[#d8c7b9] bg-white p-8 space-y-6" @submit.prevent="login">
+      <form class="w-full max-w-sm border border-slate-300 bg-white p-8 space-y-6" @submit.prevent="login">
         <div>
-          <p class="text-xs uppercase tracking-[0.3em] text-[#a37660]">CMS Login</p>
+          <p class="text-xs uppercase tracking-[0.3em] text-slate-500">CMS Login</p>
           <h1 class="mt-4 font-serif text-3xl">Himahlini & Co</h1>
         </div>
         <label class="block space-y-2">
           <span class="text-xs uppercase tracking-widest">Email</span>
-          <input v-model="email" type="email" class="w-full border border-[#d8c7b9] px-4 py-3" required />
+          <input v-model="email" type="email" class="w-full border border-slate-300 px-4 py-3 text-slate-900" required />
         </label>
         <label class="block space-y-2">
           <span class="text-xs uppercase tracking-widest">Password</span>
-          <input v-model="password" type="password" class="w-full border border-[#d8c7b9] px-4 py-3" required />
+          <input v-model="password" type="password" class="w-full border border-slate-300 px-4 py-3 text-slate-900" required />
         </label>
         <p v-if="error" class="text-sm text-red-700">{{ error }}</p>
         <button class="w-full bg-[#191614] text-white px-5 py-3 uppercase tracking-widest text-xs" type="submit">
@@ -212,17 +212,17 @@ onMounted(loadSession);
     </div>
 
     <div v-else class="min-h-screen">
-      <header class="sticky top-0 z-30 border-b border-[#d8c7b9] bg-[#f6f1ea]/95 backdrop-blur">
+      <header class="sticky top-0 z-30 border-b border-slate-300 bg-[#f6f1ea]/95 backdrop-blur">
         <div class="max-w-7xl mx-auto px-6 py-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p class="text-xs uppercase tracking-[0.3em] text-[#a37660]">Content Management</p>
+            <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Content Management</p>
             <h1 class="font-serif text-3xl">Site Content</h1>
           </div>
           <div class="flex flex-wrap items-center gap-3">
-            <button class="border border-[#d8c7b9] px-4 py-3 text-xs uppercase tracking-widest inline-flex items-center gap-2" @click="saveDraft" :disabled="saving">
+            <button class="border border-slate-300 px-4 py-3 text-xs uppercase tracking-widest inline-flex items-center gap-2" @click="saveDraft" :disabled="saving">
               <Save :size="16" /> Save Draft
             </button>
-            <button class="border border-[#d8c7b9] px-4 py-3 text-xs uppercase tracking-widest inline-flex items-center gap-2" @click="createJob('preview')" :disabled="saving">
+            <button class="border border-slate-300 px-4 py-3 text-xs uppercase tracking-widest inline-flex items-center gap-2" @click="createJob('preview')" :disabled="saving">
               <Eye :size="16" /> Preview
             </button>
             <button class="bg-[#191614] text-white px-4 py-3 text-xs uppercase tracking-widest inline-flex items-center gap-2" @click="createJob('deploy')" :disabled="saving">
@@ -241,7 +241,7 @@ onMounted(loadSession);
             v-for="section in sections"
             :key="section"
             class="w-full text-left px-4 py-3 border-b border-[#eaded4] text-xs uppercase tracking-widest"
-            :class="activeSection === section ? 'bg-[#191614] text-white' : 'hover:bg-[#f1e8df]'"
+            :class="activeSection === section ? 'bg-slate-900 text-white' : 'hover:bg-slate-100 text-slate-700'"
             @click="activeSection = section"
           >
             {{ section }}
@@ -249,7 +249,7 @@ onMounted(loadSession);
         </aside>
 
         <section class="space-y-6">
-          <div v-if="message || error || lastJob" class="border border-[#d8c7b9] bg-white p-4 text-sm space-y-2">
+          <div v-if="message || error || lastJob" class="border border-slate-300 bg-white p-4 text-sm space-y-2">
             <p v-if="message">{{ message }}</p>
             <p v-if="error" class="text-red-700">{{ error }}</p>
             <p v-if="lastJob">
@@ -383,8 +383,12 @@ onMounted(loadSession);
 
 <style scoped>
 .editor-panel {
+  color: #334155;
+}
+
+.editor-panel {
   background: white;
-  border: 1px solid #d8c7b9;
+  border: 1px solid #cbd5e1;
   display: grid;
   gap: 1.25rem;
   padding: 1.5rem;
@@ -394,6 +398,7 @@ onMounted(loadSession);
 .editor-panel h3 {
   font-family: Georgia, serif;
   font-size: 1.5rem;
+  color: #111827;
 }
 
 .editor-panel label {
@@ -405,13 +410,15 @@ onMounted(loadSession);
   font-size: 0.72rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  color: #64748b;
 }
 
 .editor-panel input,
 .editor-panel textarea,
 .repeat-row input,
 .repeat-row textarea {
-  border: 1px solid #d8c7b9;
+  border: 1px solid #cbd5e1;
+  color: #111827;
   padding: 0.75rem 0.9rem;
   width: 100%;
 }
@@ -427,15 +434,16 @@ onMounted(loadSession);
 .section-title button,
 .repeat-row button {
   align-items: center;
-  border: 1px solid #d8c7b9;
+  border: 1px solid #cbd5e1;
   display: inline-flex;
   flex-shrink: 0;
   gap: 0.5rem;
   padding: 0.65rem 0.85rem;
+  color: #334155;
 }
 
 .collection-card {
-  border: 1px solid #eaded4;
+  border: 1px solid #e2e8f0;
   display: grid;
   gap: 1rem;
   padding: 1rem;
