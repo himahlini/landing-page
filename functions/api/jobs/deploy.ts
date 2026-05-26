@@ -1,7 +1,7 @@
 import { getSessionUser } from "../../_cms/auth";
 import { publishDraft, saveDraft, validateContent } from "../../_cms/content";
 import { badRequest, json, methodNotAllowed, readJson, unauthorized } from "../../_cms/http";
-import { createJob, getJob, triggerDeployHook, updateJob } from "../../_cms/jobs";
+import { createJob, getJob, updateJob } from "../../_cms/jobs";
 import type { CmsEnv } from "../../_cms/types";
 
 type JobRequestBody = {
@@ -31,17 +31,10 @@ export const onRequestPost: PagesFunction<CmsEnv> = async ({ request, env }) => 
     createdBy: user.id
   });
 
-  const hookResult = await triggerDeployHook(env.CLOUDFLARE_DEPLOY_HOOK_URL, {
-    jobId,
-    snapshotId,
-    targetBranch: "main",
-    type: "deploy"
-  });
-
   await updateJob(env, jobId, {
-    status: hookResult.ok ? "success" : "failed",
+    status: "success",
     deploymentUrl: env.CLOUDFLARE_PRODUCTION_URL ?? null,
-    message: hookResult.message,
+    message: "Published content snapshot. Run the Cloudflare deploy command to rebuild the static site.",
     completed: true
   });
 
