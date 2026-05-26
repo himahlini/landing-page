@@ -12,7 +12,7 @@ const supportingMembers = content.people.members.slice(1);
 
 <template>
   <div class="bg-bg min-h-screen">
-    <section id="about" class="py-24 md:py-28 lg:py-32 bg-bg scroll-mt-28 md:scroll-mt-32 lg:scroll-mt-36">
+    <section id="about" class="pt-40 pb-24 md:pt-44 md:pb-28 lg:pt-48 lg:pb-32 bg-bg scroll-mt-36 md:scroll-mt-40 lg:scroll-mt-44">
       <div class="max-w-7xl mx-auto px-8 lg:px-12">
         <div class="flex flex-col lg:flex-row gap-16 lg:gap-24 items-start">
           <div class="lg:w-1/2">

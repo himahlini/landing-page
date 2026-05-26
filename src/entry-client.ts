@@ -2,7 +2,7 @@ import { createSSRApp } from "vue";
 import { createHead } from "@unhead/vue/client";
 
 import App from "./App.vue";
-import { defaultSiteContent } from "./content/site-content";
+import { defaultSiteContent, normalizeSiteContent } from "./content/site-content";
 import { siteContentKey } from "./content/site-content-key";
 import { createAppRouter } from "./router";
 
@@ -16,7 +16,7 @@ const app = createSSRApp(App);
 const router = createAppRouter(false);
 const head = createHead();
 
-app.provide(siteContentKey, window.__INITIAL_SITE_CONTENT__ ?? defaultSiteContent);
+app.provide(siteContentKey, normalizeSiteContent(window.__INITIAL_SITE_CONTENT__ ?? defaultSiteContent));
 app.use(router);
 app.use(head);
 router.isReady().then(() => {
