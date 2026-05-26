@@ -48,7 +48,7 @@ const content = useSiteContent();
         </div>
       </div>
 
-      <div class="absolute bottom-12 left-1/2 -translate-x-1/2 md:left-24 md:translate-x-0">
+      <div class="absolute bottom-12 left-1/2 hidden -translate-x-1/2 md:left-24 md:block md:translate-x-0">
         <div class="w-px h-16 bg-border" />
       </div>
     </section>

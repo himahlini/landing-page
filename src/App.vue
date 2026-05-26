@@ -94,18 +94,18 @@ const navLinkClass = (href: string) =>
       </RouterView>
     </main>
 
-    <footer v-if="!isAdminRoute" class="bg-bg border-t border-border py-12 px-8 lg:px-12">
-      <div class="max-w-7xl mx-auto px-8 lg:px-12 flex flex-col md:flex-row justify-between items-center gap-8 font-sans text-[11px] tracking-[0.3em] uppercase text-accent">
-        <div class="flex items-center gap-8">
-          <div class="flex flex-col text-primary">
-            <span class="font-sans text-[0.9rem] leading-none tracking-[0.24em] font-light uppercase sm:text-[1rem]">
+    <footer v-if="!isAdminRoute" class="bg-bg border-t border-border py-12 px-6 sm:px-8 lg:px-12">
+      <div class="max-w-7xl mx-auto flex items-start justify-between gap-6 font-sans text-[10px] uppercase text-accent sm:text-[11px] sm:tracking-[0.24em]">
+        <div class="flex min-w-0 items-start gap-4 sm:gap-6">
+          <div class="flex min-w-0 flex-col text-primary">
+            <span class="whitespace-nowrap font-sans text-[0.82rem] leading-none tracking-[0.18em] font-light uppercase sm:text-[1rem] sm:tracking-[0.24em]">
               {{ brandTitle }}
             </span>
-            <span class="mt-2 font-sans text-[0.5rem] leading-none tracking-[0.14em] text-primary/90 sm:text-[0.62rem]">
+            <span class="mt-2 whitespace-nowrap font-sans text-[0.45rem] leading-none tracking-[0.1em] text-primary/90 sm:text-[0.62rem] sm:tracking-[0.14em]">
               {{ brandSubtitle }}
             </span>
           </div>
-          <span class="opacity-60 text-primary">
+          <span class="shrink-0 pt-1 text-[0.72rem] tracking-[0.22em] text-primary/60 sm:text-[0.85rem] sm:tracking-[0.3em]">
             {{ content.footer.copyright.replace("CURRENT_YEAR", String(new Date().getFullYear())) }}
           </span>
         </div>
