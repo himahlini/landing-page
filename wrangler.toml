@@ -5,3 +5,7 @@ pages_build_output_dir = "dist/client"
 binding = "DB"
 database_name = "himahlini-cms"
 database_id = "052f2f32-1726-4987-8814-33f275060b58"
+
+[[r2_buckets]]
+binding = "ASSETS"
+bucket_name = "himahlini-assets"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { Loader2, LogOut, Plus, Rocket, Save, Trash2 } from "lucide-vue-next";
+import { Eye, Loader2, LogOut, Plus, Rocket, Save, Trash2, Upload } from "lucide-vue-next";
 
 import { defaultSiteContent, type SiteContent } from "../content/site-content";
 
@@ -23,10 +23,12 @@ const user = ref<User | null>(null);
 const content = ref<SiteContent>(structuredClone(defaultSiteContent));
 const loading = ref(true);
 const saving = ref(false);
+const uploading = ref(false);
 const message = ref("");
 const error = ref("");
 const activeSection = ref("Site");
 const lastJob = ref<CmsJob | null>(null);
+const draftReady = ref(false);
 
 const sections = ["Site", "Hero", "Navigation", "Practice", "About", "People", "Contact", "Footer"];
 
@@ -51,6 +53,22 @@ const requestJson = async <T>(url: string, options: RequestInit = {}) => {
   return body as T;
 };
 
+const requestForm = async <T>(url: string, body: FormData) => {
+  const response = await fetch(url, {
+    method: "POST",
+    credentials: "include",
+    body
+  });
+
+  const payload = (await response.json().catch(() => null)) as T | { error?: string } | null;
+
+  if (!response.ok) {
+    throw new Error((payload as { error?: string } | null)?.error ?? "Upload failed.");
+  }
+
+  return payload as T;
+};
+
 const loadSession = async () => {
   loading.value = true;
   error.value = "";
@@ -67,8 +85,9 @@ const loadSession = async () => {
 };
 
 const loadContent = async () => {
-  const response = await requestJson<{ content: SiteContent }>("/api/content");
-  content.value = structuredClone(response.content);
+    const response = await requestJson<{ content: SiteContent }>("/api/content");
+    content.value = structuredClone(response.content);
+    draftReady.value = false;
 };
 
 const login = async () => {
@@ -108,10 +127,42 @@ const saveDraft = async () => {
     });
     content.value = structuredClone(response.content);
     message.value = "Draft saved.";
+    draftReady.value = true;
   } catch (caught) {
     error.value = caught instanceof Error ? caught.message : "Unable to save draft.";
   } finally {
     saving.value = false;
+  }
+};
+
+const openPreview = () => {
+  window.open("/admin/preview", "_blank", "noopener,noreferrer");
+};
+
+const uploadImage = async (event: Event, assignUrl: (url: string) => void) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+
+  if (!file) {
+    return;
+  }
+
+  uploading.value = true;
+  error.value = "";
+  message.value = "";
+
+  try {
+    const formData = new FormData();
+    formData.set("file", file);
+    const response = await requestForm<{ url: string }>("/api/assets/upload", formData);
+    assignUrl(response.url);
+    draftReady.value = false;
+    message.value = "Image uploaded. Save draft to preview it.";
+  } catch (caught) {
+    error.value = caught instanceof Error ? caught.message : "Unable to upload image.";
+  } finally {
+    uploading.value = false;
+    input.value = "";
   }
 };
 
@@ -222,6 +273,9 @@ onMounted(loadSession);
             <button class="border border-slate-300 px-4 py-3 text-xs uppercase tracking-widest inline-flex items-center gap-2" @click="saveDraft" :disabled="saving">
               <Save :size="16" /> Save Draft
             </button>
+            <button v-if="draftReady" class="border border-slate-300 px-4 py-3 text-xs uppercase tracking-widest inline-flex items-center gap-2" @click="openPreview">
+              <Eye :size="16" /> Open Preview
+            </button>
             <button class="bg-[#191614] text-white px-4 py-3 text-xs uppercase tracking-widest inline-flex items-center gap-2" @click="createJob" :disabled="saving">
               <Rocket :size="16" /> Deploy
             </button>
@@ -274,6 +328,11 @@ onMounted(loadSession);
             <label><span>CTA Label</span><input v-model="content.hero.cta.label" /></label>
             <label><span>CTA Link</span><input v-model="content.hero.cta.href" /></label>
             <label><span>Image URL</span><input v-model="content.hero.image.src" /></label>
+            <label class="upload-control">
+              <span>Upload Image</span>
+              <input type="file" accept="image/*" :disabled="uploading" @change="uploadImage($event, (url) => content.hero.image.src = url)" />
+              <Upload :size="16" />
+            </label>
             <label><span>Image Alt</span><input v-model="content.hero.image.alt" /></label>
           </div>
 
@@ -307,6 +366,11 @@ onMounted(loadSession);
               <label><span>Description</span><textarea v-model="practice.description" rows="3" /></label>
               <label><span>Detailed Description</span><textarea v-model="practice.detailedDescription" rows="8" /></label>
               <label><span>Image URL</span><input v-model="practice.image" /></label>
+              <label class="upload-control">
+                <span>Upload Image</span>
+                <input type="file" accept="image/*" :disabled="uploading" @change="uploadImage($event, (url) => practice.image = url)" />
+                <Upload :size="16" />
+              </label>
             </div>
           </div>
 
@@ -331,6 +395,11 @@ onMounted(loadSession);
               <button class="danger" @click="removeString(content.about.description, index)"><Trash2 :size="16" /></button>
             </div>
             <label><span>Image URL</span><input v-model="content.about.image.src" /></label>
+            <label class="upload-control">
+              <span>Upload Image</span>
+              <input type="file" accept="image/*" :disabled="uploading" @change="uploadImage($event, (url) => content.about.image.src = url)" />
+              <Upload :size="16" />
+            </label>
             <label><span>Image Alt</span><input v-model="content.about.image.alt" /></label>
           </div>
 
@@ -352,6 +421,11 @@ onMounted(loadSession);
               <label><span>Credentials</span><input v-model="person.credentials" /></label>
               <label><span>Bio</span><textarea v-model="person.bio" rows="6" /></label>
               <label><span>Image URL</span><input v-model="person.image" /></label>
+              <label class="upload-control">
+                <span>Upload Image</span>
+                <input type="file" accept="image/*" :disabled="uploading" @change="uploadImage($event, (url) => person.image = url)" />
+                <Upload :size="16" />
+              </label>
             </div>
           </div>
 
@@ -448,5 +522,22 @@ onMounted(loadSession);
 
 .danger {
   color: #9f1d1d;
+}
+
+.upload-control {
+  align-items: center;
+  border: 1px dashed #94a3b8;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 0.75rem;
+  justify-content: flex-start;
+  max-width: max-content;
+  padding: 0.75rem 0.9rem;
+}
+
+.upload-control input {
+  border: 0;
+  cursor: pointer;
+  padding: 0;
 }
 </style>

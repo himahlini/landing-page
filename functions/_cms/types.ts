@@ -2,9 +2,11 @@
 
 export type CmsEnv = {
   DB: D1Database;
+  ASSETS?: R2Bucket;
   CMS_ADMIN_EMAIL?: string;
   CMS_ADMIN_PASSWORD?: string;
   SESSION_SECRET?: string;
+  R2_PUBLIC_URL?: string;
   CLOUDFLARE_ACCOUNT_ID?: string;
   CLOUDFLARE_API_TOKEN?: string;
   CLOUDFLARE_PAGES_PROJECT?: string;

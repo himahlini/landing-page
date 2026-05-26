@@ -8,7 +8,7 @@ import { useSiteContent } from "./content/use-site-content";
 const content = useSiteContent();
 const isOpen = ref(false);
 const route = useRoute();
-const isAdminRoute = computed(() => route.path === "/admin");
+const isAdminRoute = computed(() => route.path.startsWith("/admin"));
 
 const isActiveLink = (href: string) => {
   const [path, hash = ""] = href.split("#");
