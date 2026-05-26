@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { Eye, Loader2, LogOut, Plus, Rocket, Save, Trash2, Upload } from "lucide-vue-next";
+import { Loader2, LogOut, Plus, Rocket, Trash2, Upload } from "lucide-vue-next";
 
 import { defaultSiteContent, type SiteContent } from "../content/site-content";
 
@@ -21,16 +21,21 @@ const password = ref("");
 const user = ref<User | null>(null);
 const content = ref<SiteContent>(structuredClone(defaultSiteContent));
 const loading = ref(true);
-const saving = ref(false);
+const deploying = ref(false);
 const uploading = ref(false);
 const message = ref("");
 const error = ref("");
 const activeSection = ref("Site");
-const draftReady = ref(false);
 
 const sections = ["Site", "Hero", "Navigation", "Practice", "About", "People", "Contact", "Footer"];
 
 const isAuthenticated = computed(() => Boolean(user.value));
+const isDeployDisabled = computed(() => uploading.value || deploying.value);
+const statusClass = computed(() =>
+  error.value
+    ? "border-red-200 bg-red-50 text-red-700"
+    : "border-emerald-200 bg-emerald-50 text-emerald-700"
+);
 
 const requestJson = async <T>(url: string, options: RequestInit = {}) => {
   const response = await fetch(url, {
@@ -96,7 +101,6 @@ const loadSession = async () => {
 const loadContent = async () => {
   const response = await requestJson<{ content: SiteContent }>("/api/content");
   content.value = structuredClone(response.content);
-  draftReady.value = false;
 };
 
 const login = async () => {
@@ -124,30 +128,6 @@ const logout = async () => {
   user.value = null;
 };
 
-const saveDraft = async () => {
-  saving.value = true;
-  error.value = "";
-  message.value = "";
-
-  try {
-    const response = await requestJson<{ content: SiteContent }>("/api/content", {
-      method: "PUT",
-      body: JSON.stringify({ content: content.value })
-    });
-    content.value = structuredClone(response.content);
-    message.value = "Draft saved.";
-    draftReady.value = true;
-  } catch (caught) {
-    error.value = caught instanceof Error ? caught.message : "Unable to save draft.";
-  } finally {
-    saving.value = false;
-  }
-};
-
-const openPreview = () => {
-  window.open("/admin/preview", "_blank", "noopener,noreferrer");
-};
-
 const uploadImage = async (event: Event, assignUrl: (url: string) => void) => {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
@@ -164,8 +144,7 @@ const uploadImage = async (event: Event, assignUrl: (url: string) => void) => {
     const upload = await requestUpload(file);
     await uploadToSignedUrl(file, upload);
     assignUrl(upload.url);
-    draftReady.value = false;
-    message.value = "Image uploaded. Save draft to preview it.";
+    message.value = "Image uploaded. Deploy when you're ready to publish the change.";
   } catch (caught) {
     error.value = caught instanceof Error ? caught.message : "Unable to upload image.";
   } finally {
@@ -175,7 +154,7 @@ const uploadImage = async (event: Event, assignUrl: (url: string) => void) => {
 };
 
 const createJob = async () => {
-  saving.value = true;
+  deploying.value = true;
   error.value = "";
   message.value = "";
 
@@ -184,11 +163,11 @@ const createJob = async () => {
       method: "POST",
       body: JSON.stringify({ content: content.value })
     });
-    message.value = "Deploy started. Please check back in a few minutes.";
+    message.value = "Deployment started. GitHub Actions is publishing the latest content now.";
   } catch (caught) {
     error.value = caught instanceof Error ? caught.message : "Unable to start deploy.";
   } finally {
-    saving.value = false;
+    deploying.value = false;
   }
 };
 
@@ -201,8 +180,7 @@ const addPractice = () => {
     slug: "new-practice-area",
     title: "New Practice Area",
     description: "",
-    detailedDescription: "",
-    image: ""
+    detailedDescription: ""
   });
 };
 
@@ -259,16 +237,17 @@ onMounted(loadSession);
           <div>
             <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Content Management</p>
             <h1 class="font-serif text-3xl">Site Content</h1>
+            <p class="mt-2 text-sm text-slate-500">Update the content below, then deploy once to publish everything live.</p>
           </div>
           <div class="flex flex-wrap items-center gap-3">
-            <button class="border border-slate-300 px-4 py-3 text-xs uppercase tracking-widest inline-flex items-center gap-2" @click="saveDraft" :disabled="saving">
-              <Save :size="16" /> Save Draft
-            </button>
-            <button v-if="draftReady" class="border border-slate-300 px-4 py-3 text-xs uppercase tracking-widest inline-flex items-center gap-2" @click="openPreview">
-              <Eye :size="16" /> Open Preview
-            </button>
-            <button class="bg-[#191614] text-white px-4 py-3 text-xs uppercase tracking-widest inline-flex items-center gap-2" @click="createJob" :disabled="saving">
-              <Rocket :size="16" /> Deploy
+            <button
+              class="min-w-44 justify-center bg-[#191614] text-white px-4 py-3 text-xs uppercase tracking-widest inline-flex items-center gap-2 disabled:opacity-70"
+              @click="createJob"
+              :disabled="isDeployDisabled"
+            >
+              <Loader2 v-if="deploying" class="animate-spin" :size="16" />
+              <Rocket v-else :size="16" />
+              {{ deploying ? "Deploying..." : "Deploy Changes" }}
             </button>
             <button class="px-3 py-3" aria-label="Log out" @click="logout">
               <LogOut :size="18" />
@@ -291,8 +270,8 @@ onMounted(loadSession);
         </aside>
 
         <section class="space-y-6">
-          <div v-if="message || error" class="border border-slate-300 bg-white p-4 text-sm space-y-2">
-            <p v-if="message">{{ message }}</p>
+          <div v-if="message || error" class="border p-4 text-sm space-y-2" :class="statusClass">
+            <p v-if="message" class="font-medium">{{ message }}</p>
             <p v-if="error" class="text-red-700">{{ error }}</p>
           </div>
 
@@ -355,15 +334,6 @@ onMounted(loadSession);
               <label><span>Title</span><input v-model="practice.title" /></label>
               <label><span>Description</span><textarea v-model="practice.description" rows="3" /></label>
               <label><span>Detailed Description</span><textarea v-model="practice.detailedDescription" rows="8" /></label>
-              <label><span>Image URL</span><input :value="practice.image" readonly :class="previewClass(practice.image)" /></label>
-              <label class="upload-control">
-                <span>Upload Image</span>
-                <input type="file" accept="image/*" :disabled="uploading" @change="uploadImage($event, (url) => practice.image = url)" />
-                <Upload :size="16" />
-              </label>
-              <div v-if="practice.image" class="image-preview">
-                <img :src="practice.image" :alt="previewAlt(practice.title)" />
-              </div>
             </div>
           </div>
 

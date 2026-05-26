@@ -5,6 +5,22 @@ import { randomId } from "./crypto";
 export const defaultContent = seedContent;
 
 const nowIso = () => new Date().toISOString();
+const cloneDefaultContent = () => structuredClone(defaultContent);
+
+export const normalizeContent = (content: unknown) => {
+  if (!validateContent(content)) {
+    return cloneDefaultContent();
+  }
+
+  const value = structuredClone(content as typeof seedContent);
+
+  value.practiceAreas = value.practiceAreas.map((practice) => {
+    const { image: _unusedImage, ...normalizedPractice } = practice as typeof practice & { image?: string };
+    return normalizedPractice;
+  });
+
+  return value;
+};
 
 export const validateContent = (content: unknown) => {
   if (!content || typeof content !== "object" || Array.isArray(content)) {
@@ -28,13 +44,13 @@ export const validateContent = (content: unknown) => {
 
 export const parseSnapshotContent = (snapshot: ContentSnapshot | null) => {
   if (!snapshot) {
-    return defaultContent;
+    return cloneDefaultContent();
   }
 
   try {
-    return JSON.parse(snapshot.content_json);
+    return normalizeContent(JSON.parse(snapshot.content_json));
   } catch {
-    return defaultContent;
+    return cloneDefaultContent();
   }
 };
 
@@ -57,7 +73,7 @@ export const getEditableContent = async (env: CmsEnv) => {
 export const saveDraft = async (env: CmsEnv, content: unknown, userId: string) => {
   const timestamp = nowIso();
   const snapshot = await getLatestSnapshot(env, "draft");
-  const contentJson = JSON.stringify(content, null, 2);
+  const contentJson = JSON.stringify(normalizeContent(content), null, 2);
 
   if (snapshot) {
     await env.DB.prepare("UPDATE content_snapshots SET content_json = ?, created_by = ?, updated_at = ? WHERE id = ?")
@@ -80,7 +96,7 @@ export const saveDraft = async (env: CmsEnv, content: unknown, userId: string) =
 export const publishDraft = async (env: CmsEnv, userId: string) => {
   const draft = await getLatestSnapshot(env, "draft");
   const timestamp = nowIso();
-  const contentJson = draft?.content_json ?? JSON.stringify(defaultContent, null, 2);
+  const contentJson = draft?.content_json ?? JSON.stringify(cloneDefaultContent(), null, 2);
   const published = await getLatestSnapshot(env, "published");
 
   if (published) {
