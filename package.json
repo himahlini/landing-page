@@ -11,6 +11,7 @@
     "start": "NODE_ENV=production node server.js",
     "prerender": "node scripts/prerender.mjs",
     "pull:cms-content": "node scripts/pull-cms-content.mjs",
+    "admin:users": "node scripts/admin-users.mjs",
     "build:cf": "npm run build && npm run prerender",
     "build:cf:cms": "npm run build && npm run pull:cms-content && CMS_CONTENT_FILE=.cms/site-content.json npm run prerender",
     "deploy:cf": "npm run deploy:cf:prod:cms",

@@ -36,6 +36,19 @@ The admin CMS stores draft and published snapshots in Cloudflare D1. Use these c
 
 The deploy scripts pass `--env-file .env` to Wrangler so local deploys use your local Cloudflare account/token. This does not upload or overwrite Cloudflare Pages environment variables. Cloudflare dashboard secrets are only changed by commands like `wrangler pages secret put`.
 
+## Admin User CLI
+
+Use this for D1-backed admin user management:
+
+1. List users:
+   `npm run admin:users -- list`
+2. Add user:
+   `npm run admin:users -- add --email user@example.com --password "secret"`
+3. Change password:
+   `npm run admin:users -- set-password --email user@example.com --password "secret"`
+4. Delete user:
+   `npm run admin:users -- delete --email user@example.com`
+
 Required environment variables for CMS builds:
 
 - `CLOUDFLARE_ACCOUNT_ID`
