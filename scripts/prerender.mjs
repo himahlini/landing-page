@@ -12,7 +12,12 @@ const contentPath = process.env.CMS_CONTENT_FILE
   ? path.resolve(rootDir, process.env.CMS_CONTENT_FILE)
   : generatedContentPath;
 const serverEntryPath = path.join(rootDir, "dist/server/entry-server.js");
-const siteUrl = (process.env.CLOUDFLARE_PRODUCTION_URL || process.env.VITE_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
+const siteUrl = (
+  process.env.CLOUDFLARE_PRODUCTION_URL ||
+  process.env.CF_PAGES_URL ||
+  process.env.VITE_SITE_URL ||
+  "http://localhost:3000"
+).replace(/\/+$/, "");
 
 const renderDocument = (template, appHtml, head, siteState) =>
   template
