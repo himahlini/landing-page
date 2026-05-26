@@ -41,7 +41,9 @@ const getRuntimeSiteUrl = () => {
 
   const envSiteUrl =
     process.env.CLOUDFLARE_PRODUCTION_URL ||
+    process.env.CF_PAGES_URL ||
     process.env.VITE_SITE_URL ||
+    import.meta.env.CF_PAGES_URL ||
     import.meta.env.VITE_SITE_URL;
 
   return envSiteUrl ? trimTrailingSlash(envSiteUrl) : "http://localhost:3000";
