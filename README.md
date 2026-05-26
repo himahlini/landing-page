@@ -31,7 +31,6 @@ Required GitHub repository secrets:
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_D1_DATABASE_ID`
 - `CLOUDFLARE_PRODUCTION_URL`
-- `CMS_DEPLOY_CALLBACK_TOKEN`
 - `GITHUB_DEPLOY_OWNER`
 - `GITHUB_DEPLOY_REPO`
 - `GITHUB_DEPLOY_TOKEN`
@@ -86,7 +85,6 @@ Required environment variables for `/admin`:
 - `GITHUB_DEPLOY_OWNER`
 - `GITHUB_DEPLOY_REPO`
 - `GITHUB_DEPLOY_TOKEN`
-- `CMS_DEPLOY_CALLBACK_TOKEN`
 - `GITHUB_DEPLOY_WORKFLOW` if you rename the workflow file from `deploy.yml`
 - `GITHUB_DEPLOY_REF` if you want to deploy from a branch other than `main`
 

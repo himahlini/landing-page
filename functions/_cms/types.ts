@@ -20,7 +20,6 @@ export type CmsEnv = {
   GITHUB_DEPLOY_WORKFLOW?: string;
   GITHUB_DEPLOY_REF?: string;
   GITHUB_DEPLOY_TOKEN?: string;
-  CMS_DEPLOY_CALLBACK_TOKEN?: string;
 };
 
 export type AuthedUser = {

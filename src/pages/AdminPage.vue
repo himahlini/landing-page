@@ -27,7 +27,6 @@ const uploading = ref(false);
 const message = ref("");
 const error = ref("");
 const activeSection = ref("Site");
-const lastJob = ref<CmsJob | null>(null);
 const draftReady = ref(false);
 
 const sections = ["Site", "Hero", "Navigation", "Practice", "About", "People", "Contact", "Footer"];
@@ -172,33 +171,16 @@ const createJob = async () => {
   message.value = "";
 
   try {
-    const response = await requestJson<{ job: CmsJob }>("/api/jobs/deploy", {
+    await requestJson("/api/jobs/deploy", {
       method: "POST",
       body: JSON.stringify({ content: content.value })
     });
-    lastJob.value = response.job;
-    message.value = "Deploy started.";
-    pollJob(response.job.id);
+    message.value = "Deploy started. Please check back in a few minutes.";
   } catch (caught) {
     error.value = caught instanceof Error ? caught.message : "Unable to start deploy.";
   } finally {
     saving.value = false;
   }
-};
-
-const pollJob = (jobId: string) => {
-  const interval = window.setInterval(async () => {
-    try {
-      const response = await requestJson<{ job: CmsJob }>(`/api/jobs/${jobId}`);
-      lastJob.value = response.job;
-
-      if (["success", "failed"].includes(response.job.status)) {
-        window.clearInterval(interval);
-      }
-    } catch {
-      window.clearInterval(interval);
-    }
-  }, 2000);
 };
 
 const addString = (items: string[]) => items.push("");
@@ -300,13 +282,9 @@ onMounted(loadSession);
         </aside>
 
         <section class="space-y-6">
-          <div v-if="message || error || lastJob" class="border border-slate-300 bg-white p-4 text-sm space-y-2">
+          <div v-if="message || error" class="border border-slate-300 bg-white p-4 text-sm space-y-2">
             <p v-if="message">{{ message }}</p>
             <p v-if="error" class="text-red-700">{{ error }}</p>
-            <p v-if="lastJob">
-              {{ lastJob.type }}: {{ lastJob.status }}
-              <a v-if="lastJob.deployment_url" :href="lastJob.deployment_url" target="_blank" class="underline ml-2">Open</a>
-            </p>
           </div>
 
           <div v-if="activeSection === 'Site'" class="editor-panel">

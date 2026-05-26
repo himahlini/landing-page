@@ -53,7 +53,10 @@ export const onRequestPost: PagesFunction<CmsEnv> = async ({ request, env }) => 
     message: "GitHub Actions deployment dispatched. Waiting for the workflow to finish."
   });
 
-  return json({ job: await getJob(env, jobId) });
+  return json({
+    job: await getJob(env, jobId),
+    message: "Deploy started. Please check back in a few minutes."
+  });
 };
 
 export const onRequest: PagesFunction<CmsEnv> = () => methodNotAllowed();
