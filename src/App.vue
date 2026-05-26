@@ -4,11 +4,14 @@ import { RouterLink, RouterView, useRoute } from "vue-router";
 import { ChevronRight, Menu, X } from "lucide-vue-next";
 
 import { useSiteContent } from "./content/use-site-content";
+import { useRouteSeo } from "./lib/seo";
 
 const content = useSiteContent();
 const isOpen = ref(false);
 const route = useRoute();
 const isAdminRoute = computed(() => route.path.startsWith("/admin"));
+
+useRouteSeo(content);
 
 const isActiveLink = (href: string) => {
   const [path, hash = ""] = href.split("#");

@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { computed, watchEffect } from "vue";
+import { computed } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import { ArrowLeft, ChevronRight } from "lucide-vue-next";
 
 import { useSiteContent } from "../content/use-site-content";
-import { getPageMeta } from "../lib/seo";
 
 const content = useSiteContent();
 const route = useRoute();
@@ -14,12 +13,6 @@ const practice = computed(() =>
 );
 
 const isCurrentPractice = (slug: string) => practice.value?.slug === slug;
-
-watchEffect(() => {
-  if (typeof document !== "undefined") {
-    document.title = getPageMeta(route.fullPath, content).title;
-  }
-});
 </script>
 
 <template>
