@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { RouterLink, RouterView, useRoute } from "vue-router";
 import { ChevronRight, Menu, X } from "lucide-vue-next";
 
@@ -8,6 +8,7 @@ import { useSiteContent } from "./content/use-site-content";
 const content = useSiteContent();
 const isOpen = ref(false);
 const route = useRoute();
+const isAdminRoute = computed(() => route.path === "/admin");
 
 const isActiveLink = (href: string) => {
   const [path, hash = ""] = href.split("#");
@@ -36,7 +37,7 @@ const navLinkClass = (href: string) =>
 
 <template>
   <div class="min-h-screen bg-bg selection:bg-primary selection:text-bg">
-    <nav class="fixed top-0 left-0 w-full z-50 bg-bg/90 backdrop-blur-sm border-b border-border">
+    <nav v-if="!isAdminRoute" class="fixed top-0 left-0 w-full z-50 bg-bg/90 backdrop-blur-sm border-b border-border">
       <div class="max-w-7xl mx-auto px-8 lg:px-12 py-8 flex justify-between items-center">
         <RouterLink to="/" class="flex items-center gap-4 group">
           <span class="font-serif text-xl tracking-[0.2em] font-semibold text-primary uppercase transition-opacity group-hover:opacity-70">
@@ -83,7 +84,7 @@ const navLinkClass = (href: string) =>
       </RouterView>
     </main>
 
-    <footer class="bg-bg border-t border-border py-12 px-8 lg:px-12">
+    <footer v-if="!isAdminRoute" class="bg-bg border-t border-border py-12 px-8 lg:px-12">
       <div class="max-w-7xl mx-auto px-8 lg:px-12 flex flex-col md:flex-row justify-between items-center gap-8 font-sans text-[11px] tracking-[0.3em] uppercase text-accent">
         <div class="flex items-center gap-8">
           <span class="text-primary font-serif text-base tracking-normal normal-case">
