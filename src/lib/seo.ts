@@ -18,8 +18,11 @@ type PageSeo = {
 };
 
 const DEFAULT_ROBOTS = "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1";
-const DEFAULT_OG_IMAGE_PATH = "/og/himahlini-default.jpg";
+const DEFAULT_OG_IMAGE_PATH = "/og/himahlini-default-v2.jpg";
 const DEFAULT_OG_IMAGE_ALT = "Himahlini & Co brand card with the subtitle Advocates & Solicitors.";
+const DEFAULT_OG_IMAGE_WIDTH = "1200";
+const DEFAULT_OG_IMAGE_HEIGHT = "630";
+const DEFAULT_OG_IMAGE_TYPE = "image/jpeg";
 
 export const normalizePathname = (pathname: string) => {
   try {
@@ -193,13 +196,23 @@ export const useRouteSeo = (content: SiteContent = defaultSiteContent) => {
     ogLocale: "en_MY",
     ogImage: () => seo.value.ogImage,
     ogImageAlt: () => seo.value.ogImageAlt,
+    ogImageWidth: DEFAULT_OG_IMAGE_WIDTH,
+    ogImageHeight: DEFAULT_OG_IMAGE_HEIGHT,
+    ogImageType: DEFAULT_OG_IMAGE_TYPE,
     twitterCard: "summary_large_image",
     twitterTitle: () => seo.value.title,
     twitterDescription: () => seo.value.description,
-    twitterImage: () => seo.value.ogImage
+    twitterImage: () => seo.value.ogImage,
+    twitterImageAlt: () => seo.value.ogImageAlt
   });
 
   useHead({
+    meta: [
+      {
+        property: "og:image:secure_url",
+        content: () => seo.value.ogImage
+      }
+    ],
     link: [
       {
         rel: "canonical",
