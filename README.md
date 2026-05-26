@@ -23,20 +23,24 @@ The app uses a Cloudflare Pages fallback rewrite so client-side routes like `/pr
 
 ## GitHub Actions Deploy
 
-This repo is also set up to deploy from GitHub Actions on pushes to `main`.
+This repo is set up to deploy from GitHub Actions on pushes to `main`.
 
-Required GitHub repository secrets:
+The CMS `Deploy` button does not wait for the deployment to finish. It saves/publishes the D1 snapshot, dispatches the GitHub workflow, and then shows a simple "deploy started" message.
+
+Required GitHub repository secrets for the workflow:
 
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_D1_DATABASE_ID`
 - `CLOUDFLARE_PRODUCTION_URL`
+
+`CMS_DEPLOY_CALLBACK_TOKEN` is no longer required.
+
+Required Cloudflare Pages environment values for the CMS button:
+
 - `GITHUB_DEPLOY_OWNER`
 - `GITHUB_DEPLOY_REPO`
 - `GITHUB_DEPLOY_TOKEN`
-
-The CMS deploy button dispatches the workflow by repository + workflow name, so the GitHub deployment secrets also need to be configured in the admin environment:
-
 - `GITHUB_DEPLOY_WORKFLOW` defaults to `deploy.yml`
 - `GITHUB_DEPLOY_REF` defaults to `main`
 
@@ -88,4 +92,4 @@ Required environment variables for `/admin`:
 - `GITHUB_DEPLOY_WORKFLOW` if you rename the workflow file from `deploy.yml`
 - `GITHUB_DEPLOY_REF` if you want to deploy from a branch other than `main`
 
-`CLOUDFLARE_DEPLOY_HOOK_URL` and `CLOUDFLARE_PREVIEW_DEPLOY_HOOK_URL` are only needed if you keep the legacy preview hook flow enabled.
+`CLOUDFLARE_DEPLOY_HOOK_URL` and `CLOUDFLARE_PREVIEW_DEPLOY_HOOK_URL` are legacy preview-hook values and are no longer used by the current deploy flow.
