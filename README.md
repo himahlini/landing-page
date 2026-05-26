@@ -21,6 +21,28 @@ This contains everything you need to run your app locally.
 
 The app uses a Cloudflare Pages fallback rewrite so client-side routes like `/practice/corporate-litigation` continue to load correctly after deployment.
 
+## GitHub Actions Deploy
+
+This repo is also set up to deploy from GitHub Actions on pushes to `main`.
+
+Required GitHub repository secrets:
+
+- `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_D1_DATABASE_ID`
+- `CLOUDFLARE_PRODUCTION_URL`
+- `CMS_DEPLOY_CALLBACK_TOKEN`
+- `GITHUB_DEPLOY_OWNER`
+- `GITHUB_DEPLOY_REPO`
+- `GITHUB_DEPLOY_TOKEN`
+
+The CMS deploy button dispatches the workflow by repository + workflow name, so the GitHub deployment secrets also need to be configured in the admin environment:
+
+- `GITHUB_DEPLOY_WORKFLOW` defaults to `deploy.yml`
+- `GITHUB_DEPLOY_REF` defaults to `main`
+
+The workflow writes a temporary `.env` file for Wrangler and then runs the same CMS-aware deploy command used locally.
+
 ## CMS Deploys
 
 The admin CMS stores draft and published snapshots in Cloudflare D1. Use these commands when the public build should read the published CMS snapshot:
@@ -59,7 +81,13 @@ Required environment variables for `/admin`:
 
 - `CMS_ADMIN_EMAIL`
 - `CMS_ADMIN_PASSWORD`
-- `CLOUDFLARE_DEPLOY_HOOK_URL`
-- `CLOUDFLARE_PREVIEW_DEPLOY_HOOK_URL` if preview deploys should trigger separately
 - `CLOUDFLARE_PRODUCTION_URL`
 - `CLOUDFLARE_PREVIEW_URL`
+- `GITHUB_DEPLOY_OWNER`
+- `GITHUB_DEPLOY_REPO`
+- `GITHUB_DEPLOY_TOKEN`
+- `CMS_DEPLOY_CALLBACK_TOKEN`
+- `GITHUB_DEPLOY_WORKFLOW` if you rename the workflow file from `deploy.yml`
+- `GITHUB_DEPLOY_REF` if you want to deploy from a branch other than `main`
+
+`CLOUDFLARE_DEPLOY_HOOK_URL` and `CLOUDFLARE_PREVIEW_DEPLOY_HOOK_URL` are only needed if you keep the legacy preview hook flow enabled.
