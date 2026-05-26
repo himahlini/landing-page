@@ -13,18 +13,6 @@ type UploadedImage = {
   arrayBuffer?: () => Promise<ArrayBuffer>;
 };
 
-const isUploadedImage = (value: unknown): value is UploadedImage =>
-  Boolean(
-    value &&
-      typeof value === "object" &&
-      "size" in value &&
-      "type" in value &&
-      typeof value.size === "number" &&
-      typeof value.type === "string" &&
-      (("stream" in value && typeof value.stream === "function") ||
-        ("arrayBuffer" in value && typeof value.arrayBuffer === "function"))
-  );
-
 const extensionFor = (file: UploadedImage) => {
   const nameExtension = file.name?.split(".").pop()?.toLowerCase();
 
@@ -49,20 +37,31 @@ export const onRequestPost: PagesFunction<CmsEnv> = async ({ request, env }) => 
   const formData = await request.formData();
   const file = formData.get("file");
 
-  if (!isUploadedImage(file)) {
+  if (!file || typeof file === "string" || typeof file !== "object") {
     return badRequest("Upload requires a file.");
   }
 
-  if (!allowedTypes.has(file.type)) {
+  const uploadedImage = file as UploadedImage;
+
+  if (typeof uploadedImage.size !== "number" || typeof uploadedImage.type !== "string") {
+    return badRequest("Upload requires a file.");
+  }
+
+  if (!allowedTypes.has(uploadedImage.type)) {
     return badRequest("Only JPG, PNG, WebP, GIF, and SVG files are allowed.");
   }
 
-  if (file.size > maxFileSize) {
+  if (uploadedImage.size > maxFileSize) {
     return badRequest("Image must be 5MB or smaller.");
   }
 
-  const key = `cms/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${extensionFor(file)}`;
-  const body = typeof file.stream === "function" ? file.stream() : await file.arrayBuffer?.();
+  const key = `cms/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${extensionFor(uploadedImage)}`;
+  const body =
+    typeof uploadedImage.stream === "function"
+      ? uploadedImage.stream()
+      : typeof uploadedImage.arrayBuffer === "function"
+        ? await uploadedImage.arrayBuffer()
+        : null;
 
   if (!body) {
     return badRequest("Upload requires a file.");
@@ -70,7 +69,7 @@ export const onRequestPost: PagesFunction<CmsEnv> = async ({ request, env }) => 
 
   await env.CMS_ASSETS.put(key, body, {
     httpMetadata: {
-      contentType: file.type,
+      contentType: uploadedImage.type,
       cacheControl: "public, max-age=31536000, immutable"
     }
   });
