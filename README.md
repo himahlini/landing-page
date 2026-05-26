@@ -36,13 +36,22 @@ Required GitHub repository secrets for the workflow:
 
 `CMS_DEPLOY_CALLBACK_TOKEN` is no longer required.
 
-Required Cloudflare Pages environment values for the CMS button:
+Cloudflare Pages dashboard:
 
+- Add the CMS dispatch token as a secret:
+  - `GITHUB_DEPLOY_TOKEN`
+
+The non-secret Cloudflare Pages values are already defined in [`wrangler.toml`](/Users/syazany/Projects/himahlini-tapau/wrangler.toml):
+
+- `CLOUDFLARE_PRODUCTION_URL`
+- `CLOUDFLARE_PREVIEW_URL`
+- `CLOUDFLARE_PAGES_PROJECT`
+- `CLOUDFLARE_PAGES_PREVIEW_BRANCH`
 - `GITHUB_DEPLOY_OWNER`
 - `GITHUB_DEPLOY_REPO`
-- `GITHUB_DEPLOY_TOKEN`
-- `GITHUB_DEPLOY_WORKFLOW` defaults to `deploy.yml`
-- `GITHUB_DEPLOY_REF` defaults to `main`
+- `GITHUB_DEPLOY_WORKFLOW`
+- `GITHUB_DEPLOY_REF`
+- `R2_PUBLIC_URL`
 
 The workflow writes a temporary `.env` file for Wrangler and then runs the same CMS-aware deploy command used locally.
 
@@ -84,12 +93,8 @@ Required environment variables for `/admin`:
 
 - `CMS_ADMIN_EMAIL`
 - `CMS_ADMIN_PASSWORD`
+- `GITHUB_DEPLOY_TOKEN`
 - `CLOUDFLARE_PRODUCTION_URL`
 - `CLOUDFLARE_PREVIEW_URL`
-- `GITHUB_DEPLOY_OWNER`
-- `GITHUB_DEPLOY_REPO`
-- `GITHUB_DEPLOY_TOKEN`
-- `GITHUB_DEPLOY_WORKFLOW` if you rename the workflow file from `deploy.yml`
-- `GITHUB_DEPLOY_REF` if you want to deploy from a branch other than `main`
 
 `CLOUDFLARE_DEPLOY_HOOK_URL` and `CLOUDFLARE_PREVIEW_DEPLOY_HOOK_URL` are legacy preview-hook values and are no longer used by the current deploy flow.
