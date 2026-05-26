@@ -28,6 +28,7 @@ export const dispatchGithubWorkflow = async (env: CmsEnv, input: WorkflowDispatc
       authorization: `Bearer ${token}`,
       accept: "application/vnd.github+json",
       "content-type": "application/json",
+      "user-agent": "himahlini-cms",
       "x-github-api-version": "2022-11-28"
     },
     body: JSON.stringify({
