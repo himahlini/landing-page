@@ -1,12 +1,7 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
 
-# Run and deploy your AI Studio app
 
 This contains everything you need to run your app locally.
 
-View your app in AI Studio: https://ai.studio/apps/eda7e8b2-b387-4175-aada-c7a3647e3d17
 
 ## Run Locally
 
@@ -21,14 +16,37 @@ View your app in AI Studio: https://ai.studio/apps/eda7e8b2-b387-4175-aada-c7a36
 
 ## Deploy to Cloudflare Pages
 
-1. Build, prerender, and deploy:
-   `npm run deploy:cf`
-
-This keeps the Vue SSR app working on Cloudflare Pages by prerendering the known routes into static HTML before upload.
-
-## Deploy to Cloudflare Pages
-
-1. Build and deploy:
+1. Build with published CMS content and deploy to production:
    `npm run deploy:cf`
 
 The app uses a Cloudflare Pages fallback rewrite so client-side routes like `/practice/corporate-litigation` continue to load correctly after deployment.
+
+## CMS Deploys
+
+The admin CMS stores draft and published snapshots in Cloudflare D1. Use these commands when the public build should read the published CMS snapshot:
+
+1. Build with published D1 content:
+   `npm run build:cf:cms`
+2. Build and upload to Cloudflare Pages:
+   `npm run deploy:cf:prod:cms`
+3. Build and upload a preview deployment:
+   `npm run deploy:cf:preview:cms`
+4. Build from checked-in `site-content.json` instead of D1:
+   `npm run deploy:cf:prod:seed`
+
+The deploy scripts pass `--env-file .env` to Wrangler so local deploys use your local Cloudflare account/token. This does not upload or overwrite Cloudflare Pages environment variables. Cloudflare dashboard secrets are only changed by commands like `wrangler pages secret put`.
+
+Required environment variables for CMS builds:
+
+- `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_D1_DATABASE_ID`
+
+Required environment variables for `/admin`:
+
+- `CMS_ADMIN_EMAIL`
+- `CMS_ADMIN_PASSWORD`
+- `CLOUDFLARE_DEPLOY_HOOK_URL`
+- `CLOUDFLARE_PREVIEW_DEPLOY_HOOK_URL` if preview deploys should trigger separately
+- `CLOUDFLARE_PRODUCTION_URL`
+- `CLOUDFLARE_PREVIEW_URL`

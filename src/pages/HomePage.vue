@@ -3,15 +3,15 @@ import { watchEffect } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import { ChevronRight } from "lucide-vue-next";
 
-import siteContent from "../content/site-content.json";
+import { useSiteContent } from "../content/use-site-content";
 import { getPageMeta } from "../lib/seo";
 
-const content = siteContent;
+const content = useSiteContent();
 const route = useRoute();
 
 watchEffect(() => {
   if (typeof document !== "undefined") {
-    document.title = getPageMeta(route.fullPath).title;
+    document.title = getPageMeta(route.fullPath, content).title;
   }
 });
 </script>
@@ -19,8 +19,8 @@ watchEffect(() => {
 <template>
   <div>
     <section class="relative min-h-[100svh] overflow-hidden bg-bg scroll-mt-28 md:scroll-mt-32 lg:scroll-mt-36">
-      <div class="max-w-7xl mx-auto px-8 lg:px-12 relative z-10 pt-48 pb-32 lg:py-32 min-h-[100svh] flex items-center">
-        <div class="grid w-full items-center gap-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
+      <div class="relative z-10 mx-auto grid min-h-[100svh] max-w-[1560px] lg:grid-cols-[minmax(0,1fr)_clamp(460px,34vw,680px)]">
+        <div class="flex items-center px-8 pt-48 pb-32 lg:py-32 lg:pl-12 lg:pr-8">
           <div class="max-w-4xl">
             <div class="mb-12">
               <span class="font-sans text-xs tracking-[0.4em] uppercase text-accent mb-8 block">{{ content.hero.label }}</span>
@@ -45,15 +45,16 @@ watchEffect(() => {
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="absolute right-0 top-0 h-full w-[min(44vw,760px)] max-w-[760px] min-w-[300px] pointer-events-none grayscale hidden lg:block">
-        <div class="absolute inset-0 bg-bg/50" />
-        <img
-          :src="content.hero.image.src"
-          :alt="content.hero.image.alt"
-          class="w-full h-full object-cover object-center"
-        />
+        <div class="pointer-events-none hidden lg:block grayscale overflow-hidden">
+          <div class="relative h-full w-full">
+            <div class="absolute inset-0 bg-bg/35 z-10" />
+            <img
+              :src="content.hero.image.src"
+              :alt="content.hero.image.alt"
+              class="h-full w-full object-cover object-center"
+            />
+          </div>
+        </div>
       </div>
 
       <div class="absolute bottom-12 left-1/2 -translate-x-1/2 md:left-24 md:translate-x-0">
@@ -63,11 +64,11 @@ watchEffect(() => {
 
     <section id="services" class="bg-bg border-t mx-auto max-w-7xl border-border scroll-mt-28 md:scroll-mt-32 lg:scroll-mt-36">
       <div class="border-b border-border">
-        <div class="max-w-7xl mx-auto px-8 lg:px-12 py-12 md:py-16">
+        <div class="max-w-7xl mx-auto px-8 lg:px-12 py-8 md:py-16">
           <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] gap-10 lg:gap-16 items-end max-w-6xl">
             <div>
               <div class="h-px w-16 bg-primary mb-6" />
-              <h2 class="text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-serif leading-[1.05] tracking-tight">
+              <h2 class="text-2xl sm:text-4xl md:text-4xl lg:text-5xl font-serif leading-[1.05] tracking-tight">
                 {{ content.practiceOverview.label }}
               </h2>
             </div>
@@ -84,12 +85,12 @@ watchEffect(() => {
           :key="practice.slug"
           :to="`/practice/${practice.slug}`"
           :class="[
-            'p-10 lg:p-12 flex flex-col justify-between border-b border-border group bg-surface/80 hover:bg-surface transition-all duration-500 min-h-[250px] relative',
+            'p-6 sm:p-8 lg:p-12 flex flex-col justify-between border-b border-border group bg-surface/80 hover:bg-surface transition-all duration-500 min-h-[180px] sm:min-h-[250px] relative',
             idx % 2 === 0 ? 'md:border-r' : '',
             idx % 3 !== 2 ? 'lg:border-r' : 'lg:border-r-0'
           ]"
         >
-          <div class="flex justify-between items-start mb-12">
+          <div class="flex justify-between items-start mb-6 sm:mb-12">
             <span class="text-xs font-sans tracking-[0.3em] uppercase text-accent">{{ practice.id }}</span>
             <ChevronRight
               :size="14"
@@ -97,14 +98,14 @@ watchEffect(() => {
             />
           </div>
           <div>
-            <h3 class="text-2xl font-serif mb-4 transition-colors group-hover:text-title">
+            <h3 class="text-xl sm:text-2xl font-serif mb-3 sm:mb-4 transition-colors group-hover:text-title">
               {{ practice.title }}
             </h3>
-            <p class="font-sans text-sm text-primary leading-relaxed font-normal">
+            <p class="font-sans text-sm text-primary leading-snug sm:leading-relaxed font-normal line-clamp-2 sm:line-clamp-none">
               {{ practice.description }}
             </p>
           </div>
-          <div class="mt-8 overflow-hidden h-px bg-border group-hover:bg-primary transition-colors" />
+          <div class="mt-6 sm:mt-8 overflow-hidden h-px bg-border group-hover:bg-primary transition-colors" />
         </RouterLink>
       </div>
     </section>

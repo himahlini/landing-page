@@ -1,5 +1,5 @@
 {
-  "name": "himahlini-tapau",
+  "name": "himahlini",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,7 +9,18 @@
     "preview": "NODE_ENV=production node server.js",
     "clean": "rm -rf dist",
     "start": "NODE_ENV=production node server.js",
-    "deploy:cf": "npm run build && node scripts/prerender.mjs && npx wrangler pages deploy dist/client --project-name himahlini-tapau",
+    "prerender": "node scripts/prerender.mjs",
+    "pull:cms-content": "node scripts/pull-cms-content.mjs",
+    "build:cf": "npm run build && npm run prerender",
+    "build:cf:cms": "npm run build && npm run pull:cms-content && CMS_CONTENT_FILE=.cms/site-content.json npm run prerender",
+    "deploy:cf": "npm run deploy:cf:prod:cms",
+    "deploy:cf:prod": "npm run deploy:cf:prod:cms",
+    "deploy:cf:prod:seed": "npm run build:cf && npx wrangler pages deploy dist/client --project-name himahlini --branch main --env-file .env",
+    "deploy:cf:prod:cms": "npm run build:cf:cms && npx wrangler pages deploy dist/client --project-name himahlini --branch main --env-file .env",
+    "deploy:cf:preview": "npm run deploy:cf:preview:cms",
+    "deploy:cf:preview:seed": "npm run build:cf && npx wrangler pages deploy dist/client --project-name himahlini --branch preview --env-file .env",
+    "deploy:cf:preview:cms": "npm run build:cf:cms && npx wrangler pages deploy dist/client --project-name himahlini --branch preview --env-file .env",
+    "deploy:cf:cms": "npm run deploy:cf:prod:cms",
     "lint": "vue-tsc --noEmit"
   },
   "dependencies": {
@@ -27,6 +38,7 @@
     "vue-tsc": "^3.3.1"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260523.1",
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",

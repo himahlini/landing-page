@@ -3,10 +3,10 @@ import { computed, watchEffect } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import { ArrowLeft, ChevronRight } from "lucide-vue-next";
 
-import siteContent from "../content/site-content.json";
+import { useSiteContent } from "../content/use-site-content";
 import { getPageMeta } from "../lib/seo";
 
-const content = siteContent;
+const content = useSiteContent();
 const route = useRoute();
 
 const practice = computed(() =>
@@ -17,7 +17,7 @@ const isCurrentPractice = (slug: string) => practice.value?.slug === slug;
 
 watchEffect(() => {
   if (typeof document !== "undefined") {
-    document.title = getPageMeta(route.fullPath).title;
+    document.title = getPageMeta(route.fullPath, content).title;
   }
 });
 </script>

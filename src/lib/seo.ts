@@ -1,11 +1,11 @@
-import content from "../content/site-content.json";
+import { defaultSiteContent, type SiteContent } from "../content/site-content";
 
 type PageMeta = {
   title: string;
   description: string;
 };
 
-export const getPageMeta = (pathname: string): PageMeta => {
+export const getPageMeta = (pathname: string, content: SiteContent = defaultSiteContent): PageMeta => {
   const normalizedPath = (() => {
     try {
       return new URL(pathname, "http://localhost").pathname;

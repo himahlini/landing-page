@@ -1,0 +1,7 @@
+name = "himahlini"
+pages_build_output_dir = "dist/client"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "himahlini-cms"
+database_id = "052f2f32-1726-4987-8814-33f275060b58"

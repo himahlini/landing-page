@@ -3,18 +3,18 @@ import { watchEffect } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import { ChevronRight } from "lucide-vue-next";
 
-import siteContent from "../content/site-content.json";
+import { useSiteContent } from "../content/use-site-content";
 import { getPageMeta } from "../lib/seo";
 import PeopleProfileRow from "../components/PeopleProfileRow.vue";
 
-const content = siteContent;
+const content = useSiteContent();
 const route = useRoute();
 const featuredMember = content.people.members[0];
 const supportingMembers = content.people.members.slice(1);
 
 watchEffect(() => {
   if (typeof document !== "undefined") {
-    document.title = getPageMeta(route.fullPath).title;
+    document.title = getPageMeta(route.fullPath, content).title;
   }
 });
 </script>

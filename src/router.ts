@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, createMemoryHistory, type RouterHistory, type RouteRecordRaw } from "vue-router";
 
 import AboutPage from "./pages/AboutPage.vue";
+import AdminPage from "./pages/AdminPage.vue";
 import HomePage from "./pages/HomePage.vue";
 import PracticeDetailPage from "./pages/PracticeDetailPage.vue";
 
@@ -19,6 +20,11 @@ export const routes: RouteRecordRaw[] = [
     path: "/about",
     name: "about",
     component: AboutPage
+  },
+  {
+    path: "/admin",
+    name: "admin",
+    component: AdminPage
   }
 ];
 

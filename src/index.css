@@ -5,14 +5,14 @@
   --font-serif: "Playfair Display", serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
-  --color-primary: #eaded8;
-  --color-accent: #cdb8b1;
-  --color-title: #c89b91;
-  --color-border: #24211f;
-  --color-bg: #050505;
-  --color-brand: #d7a99b;
-  --color-brand-soft: #ead6bd;
-  --color-surface: #101010;
+  --color-primary: #DEA193;
+  --color-accent: #c0a8a2;
+  --color-title: #d2a69e;
+  --color-border: #2c2220;
+  --color-bg: #0b0808;
+  --color-brand: #b76e79;
+  --color-brand-soft: #ead2cd;
+  --color-surface: #120e0d;
 }
 
 @layer base {

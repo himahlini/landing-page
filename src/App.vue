@@ -3,9 +3,9 @@ import { ref } from "vue";
 import { RouterLink, RouterView, useRoute } from "vue-router";
 import { ChevronRight, Menu, X } from "lucide-vue-next";
 
-import siteContent from "./content/site-content.json";
+import { useSiteContent } from "./content/use-site-content";
 
-const content = siteContent;
+const content = useSiteContent();
 const isOpen = ref(false);
 const route = useRoute();
 
