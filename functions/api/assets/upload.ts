@@ -22,7 +22,7 @@ export const onRequestPost: PagesFunction<CmsEnv> = async ({ request, env }) => 
     return unauthorized();
   }
 
-  if (!env.ASSETS || !env.R2_PUBLIC_URL) {
+  if (!env.CMS_ASSETS || !env.R2_PUBLIC_URL) {
     return badRequest("R2 asset storage is not configured.");
   }
 
@@ -43,7 +43,7 @@ export const onRequestPost: PagesFunction<CmsEnv> = async ({ request, env }) => 
 
   const key = `cms/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${extensionFor(file)}`;
 
-  await env.ASSETS.put(key, file.stream(), {
+  await env.CMS_ASSETS.put(key, file.stream(), {
     httpMetadata: {
       contentType: file.type,
       cacheControl: "public, max-age=31536000, immutable"

@@ -2,7 +2,7 @@
 
 export type CmsEnv = {
   DB: D1Database;
-  ASSETS?: R2Bucket;
+  CMS_ASSETS?: R2Bucket;
   CMS_ADMIN_EMAIL?: string;
   CMS_ADMIN_PASSWORD?: string;
   SESSION_SECRET?: string;
