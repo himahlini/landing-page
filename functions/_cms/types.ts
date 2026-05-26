@@ -15,6 +15,12 @@ export type CmsEnv = {
   CLOUDFLARE_PREVIEW_DEPLOY_HOOK_URL?: string;
   CLOUDFLARE_PRODUCTION_URL?: string;
   CLOUDFLARE_PREVIEW_URL?: string;
+  GITHUB_DEPLOY_OWNER?: string;
+  GITHUB_DEPLOY_REPO?: string;
+  GITHUB_DEPLOY_WORKFLOW?: string;
+  GITHUB_DEPLOY_REF?: string;
+  GITHUB_DEPLOY_TOKEN?: string;
+  CMS_DEPLOY_CALLBACK_TOKEN?: string;
 };
 
 export type AuthedUser = {

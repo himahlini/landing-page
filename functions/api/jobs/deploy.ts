@@ -2,6 +2,7 @@ import { getSessionUser } from "../../_cms/auth";
 import { publishDraft, saveDraft, validateContent } from "../../_cms/content";
 import { badRequest, json, methodNotAllowed, readJson, unauthorized } from "../../_cms/http";
 import { createJob, getJob, updateJob } from "../../_cms/jobs";
+import { dispatchGithubWorkflow } from "../../_cms/github";
 import type { CmsEnv } from "../../_cms/types";
 
 type JobRequestBody = {
@@ -31,11 +32,25 @@ export const onRequestPost: PagesFunction<CmsEnv> = async ({ request, env }) => 
     createdBy: user.id
   });
 
+  const dispatchResult = await dispatchGithubWorkflow(env, {
+    jobId
+  });
+
+  if (!dispatchResult.ok) {
+    await updateJob(env, jobId, {
+      status: "failed",
+      deploymentUrl: env.CLOUDFLARE_PRODUCTION_URL ?? null,
+      message: dispatchResult.message,
+      completed: true
+    });
+
+    return json({ job: await getJob(env, jobId) }, { status: 502 });
+  }
+
   await updateJob(env, jobId, {
-    status: "success",
+    status: "running",
     deploymentUrl: env.CLOUDFLARE_PRODUCTION_URL ?? null,
-    message: "Published content snapshot. Run the Cloudflare deploy command to rebuild the static site.",
-    completed: true
+    message: "GitHub Actions deployment dispatched. Waiting for the workflow to finish."
   });
 
   return json({ job: await getJob(env, jobId) });
