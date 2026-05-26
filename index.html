@@ -1,15 +1,18 @@
 <!doctype html>
-<html lang="en">
+<html data-app-html-attrs="">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><!--app-title--></title>
-    <meta name="description" content="<!--app-description-->" />
+    <!--app-head-->
+    <meta name="theme-color" content="#0b0808" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="stylesheet" href="/src/index.css" />
   </head>
-  <body>
+  <body data-app-body-attrs="">
+    <!--app-body-tags-open-->
     <div id="root"><!--app-html--></div>
     <script>window.__INITIAL_SITE_CONTENT__ = <!--app-state--></script>
     <script type="module" src="/src/entry-client.ts"></script>
+    <!--app-body-tags-->
   </body>
 </html>

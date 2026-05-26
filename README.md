@@ -86,6 +86,7 @@ Required environment variables for CMS builds:
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_D1_DATABASE_ID`
+- `CLOUDFLARE_PRODUCTION_URL` for canonical URLs, Open Graph URLs, `robots.txt`, and `sitemap.xml`
 
 Required environment variables for `/admin`:
 

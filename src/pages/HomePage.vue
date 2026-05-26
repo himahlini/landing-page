@@ -1,19 +1,10 @@
 <script setup lang="ts">
-import { watchEffect } from "vue";
-import { RouterLink, useRoute } from "vue-router";
+import { RouterLink } from "vue-router";
 import { ChevronRight } from "lucide-vue-next";
 
 import { useSiteContent } from "../content/use-site-content";
-import { getPageMeta } from "../lib/seo";
 
 const content = useSiteContent();
-const route = useRoute();
-
-watchEffect(() => {
-  if (typeof document !== "undefined") {
-    document.title = getPageMeta(route.fullPath, content).title;
-  }
-});
 </script>
 
 <template>
