@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { Eye, Loader2, LogOut, Plus, Rocket, Save, Trash2 } from "lucide-vue-next";
+import { Loader2, LogOut, Plus, Rocket, Save, Trash2 } from "lucide-vue-next";
 
 import { defaultSiteContent, type SiteContent } from "../content/site-content";
 
@@ -11,7 +11,7 @@ type User = {
 
 type CmsJob = {
   id: string;
-  type: "preview" | "deploy";
+  type: "deploy";
   status: "queued" | "running" | "success" | "failed";
   deployment_url: string | null;
   message: string | null;
@@ -115,21 +115,21 @@ const saveDraft = async () => {
   }
 };
 
-const createJob = async (type: "preview" | "deploy") => {
+const createJob = async () => {
   saving.value = true;
   error.value = "";
   message.value = "";
 
   try {
-    const response = await requestJson<{ job: CmsJob }>(`/api/jobs/${type}`, {
+    const response = await requestJson<{ job: CmsJob }>("/api/jobs/deploy", {
       method: "POST",
       body: JSON.stringify({ content: content.value })
     });
     lastJob.value = response.job;
-    message.value = `${type === "preview" ? "Preview" : "Deploy"} started.`;
+    message.value = "Deploy started.";
     pollJob(response.job.id);
   } catch (caught) {
-    error.value = caught instanceof Error ? caught.message : `Unable to start ${type}.`;
+    error.value = caught instanceof Error ? caught.message : "Unable to start deploy.";
   } finally {
     saving.value = false;
   }
@@ -222,10 +222,7 @@ onMounted(loadSession);
             <button class="border border-slate-300 px-4 py-3 text-xs uppercase tracking-widest inline-flex items-center gap-2" @click="saveDraft" :disabled="saving">
               <Save :size="16" /> Save Draft
             </button>
-            <button class="border border-slate-300 px-4 py-3 text-xs uppercase tracking-widest inline-flex items-center gap-2" @click="createJob('preview')" :disabled="saving">
-              <Eye :size="16" /> Preview
-            </button>
-            <button class="bg-[#191614] text-white px-4 py-3 text-xs uppercase tracking-widest inline-flex items-center gap-2" @click="createJob('deploy')" :disabled="saving">
+            <button class="bg-[#191614] text-white px-4 py-3 text-xs uppercase tracking-widest inline-flex items-center gap-2" @click="createJob" :disabled="saving">
               <Rocket :size="16" /> Deploy
             </button>
             <button class="px-3 py-3" aria-label="Log out" @click="logout">
