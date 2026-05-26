@@ -32,9 +32,7 @@ export const onRequestPost: PagesFunction<CmsEnv> = async ({ request, env }) => 
     createdBy: user.id
   });
 
-  const dispatchResult = await dispatchGithubWorkflow(env, {
-    jobId
-  });
+  const dispatchResult = await dispatchGithubWorkflow(env, {});
 
   if (!dispatchResult.ok) {
     await updateJob(env, jobId, {

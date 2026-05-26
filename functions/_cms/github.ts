@@ -1,7 +1,6 @@
 import type { CmsEnv } from "./types";
 
 type WorkflowDispatchInput = {
-  jobId: string;
   owner?: string;
   repo?: string;
   workflow?: string;
@@ -32,10 +31,7 @@ export const dispatchGithubWorkflow = async (env: CmsEnv, input: WorkflowDispatc
       "x-github-api-version": "2022-11-28"
     },
     body: JSON.stringify({
-      ref,
-      inputs: {
-        cms_job_id: input.jobId
-      }
+      ref
     })
   });
 
