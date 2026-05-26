@@ -9,7 +9,8 @@ type UploadedImage = {
   name?: string;
   size: number;
   type: string;
-  stream: () => ReadableStream;
+  stream?: () => ReadableStream;
+  arrayBuffer?: () => Promise<ArrayBuffer>;
 };
 
 const isUploadedImage = (value: unknown): value is UploadedImage =>
@@ -18,10 +19,10 @@ const isUploadedImage = (value: unknown): value is UploadedImage =>
       typeof value === "object" &&
       "size" in value &&
       "type" in value &&
-      "stream" in value &&
       typeof value.size === "number" &&
       typeof value.type === "string" &&
-      typeof value.stream === "function"
+      (("stream" in value && typeof value.stream === "function") ||
+        ("arrayBuffer" in value && typeof value.arrayBuffer === "function"))
   );
 
 const extensionFor = (file: UploadedImage) => {
@@ -61,8 +62,13 @@ export const onRequestPost: PagesFunction<CmsEnv> = async ({ request, env }) => 
   }
 
   const key = `cms/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${extensionFor(file)}`;
+  const body = typeof file.stream === "function" ? file.stream() : await file.arrayBuffer?.();
 
-  await env.CMS_ASSETS.put(key, file.stream(), {
+  if (!body) {
+    return badRequest("Upload requires a file.");
+  }
+
+  await env.CMS_ASSETS.put(key, body, {
     httpMetadata: {
       contentType: file.type,
       cacheControl: "public, max-age=31536000, immutable"
