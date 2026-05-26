@@ -3,7 +3,7 @@ import { onMounted, provide, reactive, ref } from "vue";
 import { RouterLink } from "vue-router";
 import { ArrowLeft, Loader2 } from "lucide-vue-next";
 
-import { defaultSiteContent, type SiteContent } from "../content/site-content";
+import { defaultSiteContent, normalizeSiteContent, type SiteContent } from "../content/site-content";
 import { siteContentKey } from "../content/site-content-key";
 import HomePage from "./HomePage.vue";
 
@@ -27,7 +27,7 @@ const loadDraft = async () => {
       throw new Error(body.error ?? "Unable to load draft preview.");
     }
 
-    Object.assign(content, structuredClone(body.content));
+    Object.assign(content, structuredClone(normalizeSiteContent(body.content)));
   } catch (caught) {
     error.value = caught instanceof Error ? caught.message : "Unable to load draft preview.";
   } finally {

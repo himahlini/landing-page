@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { Loader2, LogOut, Plus, Rocket, Trash2, Upload } from "lucide-vue-next";
 
-import { defaultSiteContent, type SiteContent } from "../content/site-content";
+import { defaultSiteContent, normalizeSiteContent, type SiteContent } from "../content/site-content";
 
 type User = {
   id: string;
@@ -100,7 +100,7 @@ const loadSession = async () => {
 
 const loadContent = async () => {
   const response = await requestJson<{ content: SiteContent }>("/api/content");
-  content.value = structuredClone(response.content);
+  content.value = structuredClone(normalizeSiteContent(response.content));
 };
 
 const login = async () => {
