@@ -20,15 +20,11 @@ const isActiveLink = (href: string) => {
   const currentPath = route.path;
   const currentHash = route.hash.replace("#", "");
 
-  if (path === "/" && hash) {
-    return currentPath === "/" && currentHash === hash;
+  if (hash) {
+    return currentPath === path && currentHash === hash;
   }
 
-  if (path === "/about" && hash) {
-    return currentPath === "/about" && currentHash === hash;
-  }
-
-  return route.path === path;
+  return currentPath === path && currentHash === "";
 };
 
 const navLinkClass = (href: string, options?: { mobile?: boolean }) =>
