@@ -96,7 +96,7 @@ const supportingMembers = content.people.members.slice(1);
             </div>
           </div>
 
-          <div class="mt-10 border-t border-border pt-10 space-y-8 md:space-y-10">
+          <div class="mt-10 space-y-8 md:space-y-10">
             <PeopleProfileRow
               v-for="(member, index) in supportingMembers"
               :key="member.name"
