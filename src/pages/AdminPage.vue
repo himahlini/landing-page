@@ -197,7 +197,8 @@ const addPerson = () => {
 const addNavigationItem = () => {
   content.value.navigation.items.push({
     label: "New Link",
-    href: "/"
+    path: "/",
+    hash: ""
   });
 };
 
@@ -312,7 +313,8 @@ onMounted(loadSession);
             </div>
             <div v-for="(item, index) in content.navigation.items" :key="index" class="repeat-row">
               <label><span>Label</span><input v-model="item.label" /></label>
-              <label><span>Href</span><input v-model="item.href" /></label>
+              <label><span>Path</span><input v-model="item.path" /></label>
+              <label><span>Hash</span><input v-model="item.hash" placeholder="optional" /></label>
               <button class="danger" @click="content.navigation.items.splice(index, 1)"><Trash2 :size="16" /></button>
             </div>
           </div>

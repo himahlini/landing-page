@@ -13,19 +13,23 @@
     "items": [
       {
         "label": "Services",
-        "href": "/#services"
+        "path": "/",
+        "hash": "services"
       },
       {
         "label": "About",
-        "href": "/about"
+        "path": "/about",
+        "hash": ""
       },
       {
         "label": "People",
-        "href": "/about#people"
+        "path": "/about",
+        "hash": "people"
       },
       {
         "label": "Contact",
-        "href": "/#contact"
+        "path": "/",
+        "hash": "contact"
       }
     ],
     "consultationLabel": "Consultation"
