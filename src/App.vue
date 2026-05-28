@@ -15,23 +15,23 @@ const brandSubtitle = "Advocates & Solicitors";
 
 useRouteSeo(content);
 
-const isActiveLink = (href: string) => {
-  const [path, hash = ""] = href.split("#");
+const isActiveLink = (item: { path: string; hash: string }) => {
   const currentPath = route.path;
   const currentHash = route.hash.replace("#", "");
 
-  if (hash) {
-    return currentPath === path && currentHash === hash;
-  }
-
-  return currentPath === path && currentHash === "";
+  return currentPath === item.path && currentHash === item.hash;
 };
 
-const navLinkClass = (href: string, options?: { mobile?: boolean }) =>
+const getNavTarget = (item: { path: string; hash: string }) =>
+  item.hash
+    ? { path: item.path, hash: `#${item.hash}` }
+    : { path: item.path };
+
+const navLinkClass = (item: { path: string; hash: string }, options?: { mobile?: boolean }) =>
   [
     "transition-colors font-medium",
     options?.mobile ? "inline-flex self-start flex-col gap-3 pb-0" : "",
-    isActiveLink(href)
+    isActiveLink(item)
       ? options?.mobile
         ? "text-primary after:block after:h-px after:w-8 after:bg-primary after:content-['']"
         : "text-primary border-b border-primary pb-1"
@@ -58,8 +58,8 @@ const navLinkClass = (href: string, options?: { mobile?: boolean }) =>
         <RouterLink
           v-for="item in content.navigation.items"
           :key="item.label"
-          :to="item.href"
-          :class="navLinkClass(item.href)"
+          :to="getNavTarget(item)"
+          :class="navLinkClass(item)"
         >
           {{ item.label }}
         </RouterLink>
@@ -78,8 +78,8 @@ const navLinkClass = (href: string, options?: { mobile?: boolean }) =>
         <RouterLink
           v-for="item in content.navigation.items"
           :key="item.label"
-          :to="item.href"
-          :class="navLinkClass(item.href, { mobile: true })"
+          :to="getNavTarget(item)"
+          :class="navLinkClass(item, { mobile: true })"
           @click="isOpen = false"
         >
           {{ item.label }}
