@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { RouterLink, RouterView, useRoute } from "vue-router";
 import { ChevronRight, Menu, X } from "lucide-vue-next";
 
+import { formatCopyright } from "./content/site-content";
 import { useSiteContent } from "./content/use-site-content";
 import { useRouteSeo } from "./lib/seo";
 
@@ -105,7 +106,7 @@ const navLinkClass = (item: { path: string; hash: string }, options?: { mobile?:
             </span>
           </div>
           <span class="shrink-0 pt-1 text-[0.72rem] tracking-[0.22em] text-primary/60 sm:text-[0.85rem] sm:tracking-[0.3em]">
-            {{ content.footer.copyright.replace("CURRENT_YEAR", String(new Date().getFullYear())) }}
+            {{ formatCopyright(content.footer.copyright) }}
           </span>
         </div>
       </div>
