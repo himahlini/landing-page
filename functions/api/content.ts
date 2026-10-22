@@ -1,7 +1,28 @@
 import { getSessionUser } from "../_cms/auth";
-import { getEditableContent, saveDraft, validateContent } from "../_cms/content";
+import { getEditableContent, parseSnapshotContent, saveDraft, validateContent } from "../_cms/content";
 import { badRequest, json, methodNotAllowed, readJson, unauthorized } from "../_cms/http";
-import type { CmsEnv } from "../_cms/types";
+import type { CmsEnv, ContentSnapshot } from "../_cms/types";
+
+const snapshotMeta = (snapshot: ContentSnapshot | null) =>
+  snapshot
+    ? {
+        id: snapshot.id,
+        updatedAt: snapshot.updated_at,
+        publishedAt: snapshot.published_at
+      }
+    : null;
+
+const editorPayload = async (env: CmsEnv) => {
+  const { content, draft, published } = await getEditableContent(env);
+
+  return {
+    content,
+    // Without a published snapshot the live site is built from the seed content.
+    publishedContent: parseSnapshotContent(published),
+    draft: snapshotMeta(draft),
+    published: snapshotMeta(published)
+  };
+};
 
 type SaveContentBody = {
   content?: unknown;
@@ -14,13 +35,7 @@ export const onRequestGet: PagesFunction<CmsEnv> = async ({ request, env }) => {
     return unauthorized();
   }
 
-  const content = await getEditableContent(env);
-
-  return json({
-    content: content.content,
-    draft: content.draft,
-    published: content.published
-  });
+  return json(await editorPayload(env));
 };
 
 export const onRequestPut: PagesFunction<CmsEnv> = async ({ request, env }) => {
@@ -37,14 +52,8 @@ export const onRequestPut: PagesFunction<CmsEnv> = async ({ request, env }) => {
   }
 
   const draftId = await saveDraft(env, body.content, user.id);
-  const content = await getEditableContent(env);
 
-  return json({
-    draftId,
-    content: content.content,
-    draft: content.draft,
-    published: content.published
-  });
+  return json({ draftId, ...(await editorPayload(env)) });
 };
 
 export const onRequest: PagesFunction<CmsEnv> = () => methodNotAllowed();

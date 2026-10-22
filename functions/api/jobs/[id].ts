@@ -1,6 +1,6 @@
 import { getSessionUser } from "../../_cms/auth";
 import { json, methodNotAllowed, unauthorized } from "../../_cms/http";
-import { getJob } from "../../_cms/jobs";
+import { getJob, syncDeployJob } from "../../_cms/jobs";
 import type { CmsEnv } from "../../_cms/types";
 
 export const onRequestGet: PagesFunction<CmsEnv> = async ({ request, env, params }) => {
@@ -17,7 +17,7 @@ export const onRequestGet: PagesFunction<CmsEnv> = async ({ request, env, params
     return json({ error: "Job not found" }, { status: 404 });
   }
 
-  return json({ job });
+  return json({ job: await syncDeployJob(env, job) });
 };
 
 export const onRequest: PagesFunction<CmsEnv> = () => methodNotAllowed();

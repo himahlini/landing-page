@@ -54,7 +54,10 @@ export const onRequestPost: PagesFunction<CmsEnv> = async ({ request, env }) => 
   const publicUrl = env.R2_PUBLIC_URL?.replace(/\/$/, "");
 
   if (!accountId || !bucketName || !accessKeyId || !secretAccessKey || !publicUrl) {
-    return badRequest("R2 asset storage is not configured.");
+    return json(
+      { error: "Image uploads aren't set up yet. Please contact your website developer (R2 asset storage is not configured)." },
+      { status: 503 }
+    );
   }
 
   const key = `cms/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${extensionFor(filename, contentType)}`;

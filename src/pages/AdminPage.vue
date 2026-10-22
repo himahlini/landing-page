@@ -1,527 +1,544 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import { Loader2, LogOut, Plus, Rocket, Trash2, Upload } from "lucide-vue-next";
+import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
+import {
+  AlertCircle,
+  CheckCircle2,
+  ExternalLink,
+  Eye,
+  Loader2,
+  LogOut,
+  RefreshCw,
+  Rocket,
+  Undo2,
+  WifiOff
+} from "lucide-vue-next";
 
-import { defaultSiteContent, normalizeSiteContent, type SiteContent } from "../content/site-content";
+import "../admin/admin.css";
+import { api, errorMessage, isUnauthorized, type AdminUser } from "../admin/api";
+import AdminConfirmDialog from "../admin/components/AdminConfirmDialog.vue";
+import AdminDeployStatus from "../admin/components/AdminDeployStatus.vue";
+import AdminLogin from "../admin/components/AdminLogin.vue";
+import AdminToastStack from "../admin/components/AdminToastStack.vue";
+import { askConfirm, showToast } from "../admin/feedback";
+import { adminFormKey } from "../admin/form-context";
+import AboutSection from "../admin/sections/AboutSection.vue";
+import ContactSection from "../admin/sections/ContactSection.vue";
+import FooterSection from "../admin/sections/FooterSection.vue";
+import HeroSection from "../admin/sections/HeroSection.vue";
+import NavigationSection from "../admin/sections/NavigationSection.vue";
+import PeopleSection from "../admin/sections/PeopleSection.vue";
+import PracticeSection from "../admin/sections/PracticeSection.vue";
+import SiteSection from "../admin/sections/SiteSection.vue";
+import { formatRelativeTime } from "../admin/time";
+import { useCmsEditor } from "../admin/use-cms-editor";
+import { changedSections, errorCountBySection, sections, validateSiteContent, type SectionId } from "../admin/validation";
 
-type User = {
-  id: string;
-  email: string;
+const sectionComponents = {
+  site: SiteSection,
+  hero: HeroSection,
+  navigation: NavigationSection,
+  practice: PracticeSection,
+  about: AboutSection,
+  people: PeopleSection,
+  contact: ContactSection,
+  footer: FooterSection
 };
 
-type UploadSession = {
-  key: string;
-  url: string;
-  uploadUrl: string;
-  headers?: Record<string, string>;
+const user = ref<AdminUser | null>(null);
+const checkingSession = ref(true);
+const sessionExpired = ref(false);
+const isOnline = ref(true);
+const showAllErrors = ref(false);
+const uploadsInFlight = ref(0);
+const now = ref(new Date());
+const contentTop = ref<HTMLElement | null>(null);
+
+const initialSection = () => {
+  const hash = typeof window === "undefined" ? "" : window.location.hash.slice(1);
+  return sections.some((section) => section.id === hash) ? (hash as SectionId) : "site";
 };
+const activeSection = ref<SectionId>(initialSection());
 
-const email = ref("");
-const password = ref("");
-const user = ref<User | null>(null);
-const content = ref<SiteContent>(structuredClone(defaultSiteContent));
-const loading = ref(true);
-const deploying = ref(false);
-const uploading = ref(false);
-const message = ref("");
-const error = ref("");
-const activeSection = ref("Site");
+const editor = useCmsEditor(() => {
+  if (user.value) sessionExpired.value = true;
+});
+const { content, loadState, saveState, deployJob } = editor;
 
-const sections = ["Site", "Hero", "Navigation", "Practice", "About", "People", "Contact", "Footer"];
-
-const isAuthenticated = computed(() => Boolean(user.value));
-const isDeployDisabled = computed(() => uploading.value || deploying.value);
-const statusClass = computed(() =>
-  error.value
-    ? "border-red-200 bg-red-50 text-red-700"
-    : "border-emerald-200 bg-emerald-50 text-emerald-700"
+const errors = computed(() => validateSiteContent(content.value));
+const errorCounts = computed(() => errorCountBySection(errors.value));
+const totalErrors = computed(() => Object.keys(errors.value).length);
+const unpublishedSections = computed(() => changedSections(content.value, editor.publishedContent.value));
+const activeDefinition = computed(() => sections.find((section) => section.id === activeSection.value) ?? sections[0]);
+const liveUrl = computed(() => deployJob.value?.deployment_url || window.location.origin);
+const lastPublishedLabel = computed(() => {
+  const publishedAt = editor.publishedMeta.value?.publishedAt;
+  return publishedAt ? formatRelativeTime(new Date(publishedAt), now.value) : "";
+});
+const lastSavedLabel = computed(() =>
+  editor.lastSavedAt.value ? formatRelativeTime(editor.lastSavedAt.value, now.value) : ""
 );
 
-const requestJson = async <T>(url: string, options: RequestInit = {}) => {
-  const response = await fetch(url, {
-    credentials: "include",
-    ...options,
-    headers: {
-      "content-type": "application/json",
-      ...options.headers
-    }
-  });
+const canPublish = computed(
+  () =>
+    loadState.value === "ready" &&
+    !editor.isDeploying.value &&
+    uploadsInFlight.value === 0 &&
+    (editor.hasUnpublishedChanges.value || editor.lastDeployFailed.value)
+);
 
-  const body = (await response.json().catch(() => null)) as T | { error?: string } | null;
+const publishTitle = computed(() => {
+  if (editor.isDeploying.value) return "Publishing is in progress";
+  if (uploadsInFlight.value) return "Wait for the image upload to finish";
+  if (!editor.hasUnpublishedChanges.value && !editor.lastDeployFailed.value) return "There are no changes to publish";
+  return "Make your changes visible on the website";
+});
 
-  if (!response.ok) {
-    throw new Error((body as { error?: string } | null)?.error ?? "Request failed.");
+const status = computed(() => {
+  if (saveState.value === "saving" || saveState.value === "pending") {
+    return { tone: "neutral", label: "Saving…" } as const;
   }
+  if (saveState.value === "error") {
+    return { tone: "error", label: "Changes not saved" } as const;
+  }
+  if (editor.isDeploying.value) {
+    return { tone: "neutral", label: "Publishing…" } as const;
+  }
+  if (editor.lastDeployFailed.value) {
+    return { tone: "error", label: "Last publish failed" } as const;
+  }
+  if (editor.hasUnpublishedChanges.value) {
+    return { tone: "warning", label: "Saved as draft · not live yet" } as const;
+  }
+  return { tone: "success", label: "Everything is live" } as const;
+});
 
-  return body as T;
+provide(adminFormKey, {
+  errors,
+  content,
+  publishedContent: editor.publishedContent,
+  showAllErrors,
+  uploadsInFlight,
+  onUnauthorized: () => (sessionExpired.value = true)
+});
+
+const revealActiveTab = () =>
+  document.querySelector('[aria-label="Website sections"] [aria-current="page"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
+
+watch(loadState, async (state) => {
+  if (state === "ready") {
+    await nextTick();
+    revealActiveTab();
+  }
+});
+
+const selectSection = async (id: SectionId) => {
+  activeSection.value = id;
+  window.history.replaceState(null, "", `#${id}`);
+  await nextTick();
+  revealActiveTab();
+  if (contentTop.value && contentTop.value.getBoundingClientRect().top < 0) {
+    contentTop.value.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 };
 
-const uploadToSignedUrl = async (file: File, upload: UploadSession) => {
-  const response = await fetch(upload.uploadUrl, {
-    method: "PUT",
-    headers: upload.headers,
-    body: file
-  });
-
-  if (!response.ok) {
-    throw new Error("Upload failed.");
-  }
+const startEditor = async (signedInUser: AdminUser) => {
+  user.value = signedInUser;
+  await editor.load();
 };
 
-const previewAlt = (label: string) => `${label} preview`;
-
-const previewClass = (url: string) =>
-  url ? "bg-slate-50 text-slate-500 cursor-not-allowed" : "bg-slate-50 text-slate-400";
-
-const requestUpload = async (file: File) =>
-  requestJson<UploadSession>("/api/assets/upload", {
-    method: "POST",
-    body: JSON.stringify({
-      filename: file.name,
-      contentType: file.type,
-      size: file.size
-    })
-  });
-
-const loadSession = async () => {
-  loading.value = true;
-  error.value = "";
-
+const checkSession = async () => {
+  checkingSession.value = true;
   try {
-    const session = await requestJson<{ user: User }>("/api/auth/me");
-    user.value = session.user;
-    await loadContent();
-  } catch {
+    const { user: sessionUser } = await api.me();
+    await startEditor(sessionUser);
+  } catch (error) {
+    if (!isUnauthorized(error)) {
+      showToast("error", "Couldn't reach the editor", errorMessage(error));
+    }
     user.value = null;
   } finally {
-    loading.value = false;
+    checkingSession.value = false;
   }
 };
 
-const loadContent = async () => {
-  const response = await requestJson<{ content: SiteContent }>("/api/content");
-  content.value = structuredClone(normalizeSiteContent(response.content));
+const onReauthenticated = async (signedInUser: AdminUser) => {
+  user.value = signedInUser;
+  sessionExpired.value = false;
+  showToast("success", "Signed in again", "Your edits were kept.");
+
+  if (loadState.value !== "ready") {
+    await editor.load();
+  } else if (editor.hasUnsavedChanges.value) {
+    await editor.saveNow();
+  }
 };
 
-const login = async () => {
-  loading.value = true;
-  error.value = "";
-  message.value = "";
+const signOut = async () => {
+  if (editor.hasUnsavedChanges.value) {
+    await editor.saveNow();
+  }
 
-  try {
-    const response = await requestJson<{ user: User }>("/api/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email: email.value, password: password.value })
+  if (editor.hasUnsavedChanges.value) {
+    const confirmed = await askConfirm({
+      title: "Sign out without saving?",
+      body: "Some of your latest edits couldn't be saved and will be lost.",
+      confirmLabel: "Sign out anyway",
+      tone: "danger"
     });
-    user.value = response.user;
-    password.value = "";
-    await loadContent();
-  } catch (caught) {
-    error.value = caught instanceof Error ? caught.message : "Unable to log in.";
-  } finally {
-    loading.value = false;
+    if (!confirmed) return;
   }
-};
 
-const logout = async () => {
-  await requestJson("/api/auth/logout", { method: "POST", body: "{}" });
+  await api.logout().catch(() => undefined);
   user.value = null;
+  showAllErrors.value = false;
 };
 
-const uploadImage = async (event: Event, assignUrl: (url: string) => void) => {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
+const openPreview = async () => {
+  // Open the tab straight away so the browser doesn't treat it as an unwanted popup.
+  const previewWindow = window.open("about:blank", "_blank");
+  await editor.saveNow();
 
-  if (!file) {
+  if (saveState.value === "error") {
+    previewWindow?.close();
+    showToast("error", "Couldn't open the preview", "Your latest changes aren't saved yet. Please try again.");
     return;
   }
 
-  uploading.value = true;
-  error.value = "";
-  message.value = "";
-
-  try {
-    const upload = await requestUpload(file);
-    await uploadToSignedUrl(file, upload);
-    assignUrl(upload.url);
-    message.value = "Image uploaded. Deploy when you're ready to publish the change.";
-  } catch (caught) {
-    error.value = caught instanceof Error ? caught.message : "Unable to upload image.";
-  } finally {
-    uploading.value = false;
-    input.value = "";
+  if (previewWindow) {
+    previewWindow.location.href = "/admin/preview";
+  } else {
+    window.location.href = "/admin/preview";
   }
 };
 
-const createJob = async () => {
-  deploying.value = true;
-  error.value = "";
-  message.value = "";
+const startPublish = async () => {
+  if (totalErrors.value) {
+    showAllErrors.value = true;
+    const firstSection = sections.find((section) => errorCounts.value[section.id]);
+    if (firstSection) await selectSection(firstSection.id);
+    await nextTick();
+    const firstField = document.querySelector<HTMLElement>(
+      `[data-field-path="${Object.keys(errors.value).find((path) => document.querySelector(`[data-field-path="${path}"]`))}"]`
+    );
+    firstField?.scrollIntoView({ behavior: "smooth", block: "center" });
+    firstField?.querySelector<HTMLElement>("input, textarea, button")?.focus({ preventScroll: true });
+    showToast(
+      "error",
+      `${totalErrors.value} ${totalErrors.value === 1 ? "thing needs" : "things need"} fixing before publishing`,
+      "Look for the fields highlighted in red."
+    );
+    return;
+  }
 
-  try {
-    await requestJson("/api/jobs/deploy", {
-      method: "POST",
-      body: JSON.stringify({ content: content.value })
+  const changed = sections.filter((section) => unpublishedSections.value.includes(section.id)).map((section) => section.label);
+  const confirmed = await askConfirm({
+    title: changed.length ? "Publish your changes?" : "Try publishing again?",
+    body: changed.length
+      ? "These sections will be updated on the live website. It usually takes 2–4 minutes."
+      : "The website will be rebuilt with your current content. It usually takes 2–4 minutes.",
+    items: changed,
+    confirmLabel: "Publish now"
+  });
+
+  if (confirmed) {
+    await editor.publish();
+  }
+};
+
+const discardChanges = async () => {
+  const confirmed = await askConfirm({
+    title: "Discard unpublished changes?",
+    body: "Everything will go back to what's currently on the live website. This can't be undone.",
+    items: sections.filter((section) => unpublishedSections.value.includes(section.id)).map((section) => section.label),
+    confirmLabel: "Discard changes",
+    tone: "danger"
+  });
+
+  if (confirmed) {
+    editor.discardUnpublished();
+    showAllErrors.value = false;
+    showToast("info", "Changes discarded", "The editor now matches the live website.");
+  }
+};
+
+const onKeydown = (event: KeyboardEvent) => {
+  if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s" && user.value) {
+    event.preventDefault();
+    void editor.saveNow().then(() => {
+      if (saveState.value !== "error") showToast("success", "Draft saved");
     });
-    message.value = "Deployment started. GitHub Actions is publishing the latest content now.";
-  } catch (caught) {
-    error.value = caught instanceof Error ? caught.message : "Unable to start deploy.";
-  } finally {
-    deploying.value = false;
   }
 };
 
-const addString = (items: string[]) => items.push("");
-const removeString = (items: string[], index: number) => items.splice(index, 1);
-
-const addPractice = () => {
-  content.value.practiceAreas.push({
-    id: String(content.value.practiceAreas.length + 1).padStart(2, "0"),
-    slug: "new-practice-area",
-    title: "New Practice Area",
-    description: "",
-    detailedDescription: ""
-  });
+const onBeforeUnload = (event: BeforeUnloadEvent) => {
+  if (user.value && (editor.hasUnsavedChanges.value || saveState.value === "saving")) {
+    event.preventDefault();
+    event.returnValue = "";
+  }
 };
 
-const addPerson = () => {
-  content.value.people.members.push({
-    name: "New Lawyer",
-    role: "",
-    credentials: "",
-    bio: "",
-    image: ""
-  });
-};
+const updateOnline = () => (isOnline.value = navigator.onLine);
 
-const addNavigationItem = () => {
-  content.value.navigation.items.push({
-    label: "New Link",
-    path: "/",
-    hash: ""
-  });
-};
+watch(isOnline, (online) => {
+  if (online && user.value && editor.hasUnsavedChanges.value) void editor.saveNow();
+});
 
-onMounted(loadSession);
+let clock: number | undefined;
+
+onMounted(() => {
+  updateOnline();
+  window.addEventListener("online", updateOnline);
+  window.addEventListener("offline", updateOnline);
+  window.addEventListener("keydown", onKeydown);
+  window.addEventListener("beforeunload", onBeforeUnload);
+  clock = window.setInterval(() => (now.value = new Date()), 30_000);
+  void checkSession();
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("online", updateOnline);
+  window.removeEventListener("offline", updateOnline);
+  window.removeEventListener("keydown", onKeydown);
+  window.removeEventListener("beforeunload", onBeforeUnload);
+  window.clearInterval(clock);
+});
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#f6f1ea] text-slate-800 font-sans">
-    <div v-if="loading && !isAuthenticated" class="min-h-screen grid place-items-center">
-      <Loader2 class="animate-spin" :size="28" />
+  <div class="admin-root min-h-screen bg-[#f5f2ee]">
+    <!-- Checking for an existing session -->
+    <div v-if="checkingSession" class="grid min-h-screen place-items-center">
+      <div class="flex flex-col items-center gap-3 text-stone-500">
+        <Loader2 class="animate-spin" :size="26" />
+        <p class="text-sm">Loading your editor…</p>
+      </div>
     </div>
 
-    <div v-else-if="!isAuthenticated" class="min-h-screen grid place-items-center px-6">
-      <form class="w-full max-w-sm border border-slate-300 bg-white p-8 space-y-6" @submit.prevent="login">
-        <div>
-          <p class="text-xs uppercase tracking-[0.3em] text-slate-500">CMS Login</p>
-          <h1 class="mt-4 font-serif text-3xl">Himahlini & Co</h1>
+    <!-- Sign in -->
+    <div v-else-if="!user" class="grid min-h-screen place-items-center px-4 py-10">
+      <div class="w-full max-w-sm">
+        <div class="mb-6 text-center">
+          <p class="text-xs font-medium uppercase tracking-[0.2em] text-stone-500">Website editor</p>
+          <h1 class="mt-2 font-serif text-3xl !font-light">{{ content.siteMetadata.name }}</h1>
         </div>
-        <label class="block space-y-2">
-          <span class="text-xs uppercase tracking-widest">Email</span>
-          <input v-model="email" type="email" class="w-full border border-slate-300 px-4 py-3 text-slate-900" required />
-        </label>
-        <label class="block space-y-2">
-          <span class="text-xs uppercase tracking-widest">Password</span>
-          <input v-model="password" type="password" class="w-full border border-slate-300 px-4 py-3 text-slate-900" required />
-        </label>
-        <p v-if="error" class="text-sm text-red-700">{{ error }}</p>
-        <button class="w-full bg-[#191614] text-white px-5 py-3 uppercase tracking-widest text-xs" type="submit">
-          Sign in
-        </button>
-      </form>
+        <div class="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm sm:p-7">
+          <AdminLogin @signed-in="startEditor" />
+        </div>
+      </div>
     </div>
 
-    <div v-else class="min-h-screen">
-      <header class="sticky top-0 z-30 border-b border-slate-300 bg-[#f6f1ea]/95 backdrop-blur">
-        <div class="max-w-7xl mx-auto px-6 py-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Content Management</p>
-            <h1 class="font-serif text-3xl">Site Content</h1>
-            <p class="mt-2 text-sm text-slate-500">Update the content below, then deploy once to publish everything live.</p>
+    <!-- Editor -->
+    <div v-else class="min-h-screen pb-24 lg:pb-0">
+      <header class="sticky top-0 z-40 border-b border-stone-200 bg-white/95 backdrop-blur">
+        <div class="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-[15px] font-semibold text-stone-900">{{ content.siteMetadata.name }}</p>
+            <p class="truncate text-xs text-stone-500">Website editor</p>
           </div>
-          <div class="flex flex-wrap items-center gap-3">
-            <button
-              class="min-w-44 justify-center bg-[#191614] text-white px-4 py-3 text-xs uppercase tracking-widest inline-flex items-center gap-2 disabled:opacity-70"
-              @click="createJob"
-              :disabled="isDeployDisabled"
+
+          <div
+            v-if="loadState === 'ready'"
+            class="hidden items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium md:inline-flex"
+            :class="{
+              'bg-stone-100 text-stone-600': status.tone === 'neutral',
+              'bg-rose-50 text-rose-700': status.tone === 'error',
+              'bg-amber-50 text-amber-800': status.tone === 'warning',
+              'bg-emerald-50 text-emerald-700': status.tone === 'success'
+            }"
+            :title="lastSavedLabel ? `Last saved ${lastSavedLabel}` : undefined"
+            role="status"
+          >
+            <Loader2 v-if="status.tone === 'neutral'" :size="13" class="animate-spin" />
+            <AlertCircle v-else-if="status.tone === 'error'" :size="13" />
+            <span v-else-if="status.tone === 'warning'" class="h-2 w-2 rounded-full bg-amber-500" />
+            <CheckCircle2 v-else :size="13" />
+            {{ status.label }}
+          </div>
+
+          <a :href="liveUrl" target="_blank" rel="noopener" class="admin-btn-ghost hidden sm:inline-flex" title="Open the live website in a new tab">
+            <ExternalLink :size="16" />
+            <span class="hidden xl:inline">View website</span>
+          </a>
+          <button
+            type="button"
+            class="admin-btn-secondary hidden sm:inline-flex"
+            :disabled="loadState !== 'ready'"
+            title="See your unpublished changes before visitors do"
+            @click="openPreview"
+          >
+            <Eye :size="16" />
+            Preview
+          </button>
+          <button type="button" class="admin-btn-primary hidden lg:inline-flex" :disabled="!canPublish" :title="publishTitle" @click="startPublish">
+            <Loader2 v-if="editor.isDeploying.value" class="animate-spin" :size="16" />
+            <Rocket v-else :size="16" />
+            {{ editor.isDeploying.value ? "Publishing…" : "Publish changes" }}
+            <span
+              v-if="!editor.isDeploying.value && unpublishedSections.length"
+              class="rounded-full bg-white/20 px-1.5 text-xs tabular-nums"
             >
-              <Loader2 v-if="deploying" class="animate-spin" :size="16" />
-              <Rocket v-else :size="16" />
-              {{ deploying ? "Deploying..." : "Deploy Changes" }}
-            </button>
-            <button class="px-3 py-3" aria-label="Log out" @click="logout">
-              <LogOut :size="18" />
-            </button>
-          </div>
+              {{ unpublishedSections.length }}
+            </span>
+          </button>
+          <button type="button" class="admin-icon-btn" :title="`Signed in as ${user.email}. Sign out`" aria-label="Sign out" @click="signOut">
+            <LogOut :size="18" />
+          </button>
         </div>
       </header>
 
-      <main class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)] gap-8">
-        <aside class="lg:sticky lg:top-28 self-start border border-[#d8c7b9] bg-white">
-          <button
-            v-for="section in sections"
-            :key="section"
-            class="w-full text-left px-4 py-3 border-b border-[#eaded4] text-xs uppercase tracking-widest"
-            :class="activeSection === section ? 'bg-slate-900 text-white' : 'hover:bg-slate-100 text-slate-700'"
-            @click="activeSection = section"
-          >
-            {{ section }}
-          </button>
+      <div v-if="!isOnline" class="flex items-center justify-center gap-2 bg-amber-100 px-4 py-2 text-sm text-amber-900" role="status">
+        <WifiOff :size="16" />
+        You're offline. Keep editing — we'll save your changes when you reconnect.
+      </div>
+
+      <!-- Loading content -->
+      <main v-if="loadState === 'loading'" class="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:py-8" aria-busy="true">
+        <div class="hidden h-80 animate-pulse rounded-2xl bg-stone-200/70 lg:block" />
+        <div class="grid gap-4">
+          <div class="h-10 w-1/2 animate-pulse rounded-lg bg-stone-200/70" />
+          <div class="h-72 animate-pulse rounded-2xl bg-stone-200/70" />
+          <div class="h-48 animate-pulse rounded-2xl bg-stone-200/70" />
+        </div>
+      </main>
+
+      <!-- Content failed to load -->
+      <main v-else-if="loadState === 'error'" class="mx-auto grid max-w-lg place-items-center px-4 py-24 text-center">
+        <AlertCircle :size="32" class="text-rose-500" />
+        <h1 class="mt-4 text-lg font-semibold">We couldn't load your website content</h1>
+        <p class="mt-2 text-sm text-stone-600">{{ editor.loadError.value }}</p>
+        <button type="button" class="admin-btn-primary mt-6" @click="editor.load()">
+          <RefreshCw :size="16" />
+          Try again
+        </button>
+      </main>
+
+      <main v-else class="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-8 lg:py-8">
+        <!-- Section navigation -->
+        <aside class="min-w-0 lg:sticky lg:top-24 lg:self-start">
+          <nav aria-label="Website sections" class="-mx-4 overflow-x-auto px-4 pb-1 lg:mx-0 lg:overflow-visible lg:p-0">
+            <ul class="flex gap-2 lg:flex-col lg:gap-0.5">
+              <li v-for="section in sections" :key="section.id" class="shrink-0">
+                <button
+                  type="button"
+                  class="flex w-full items-center gap-2 whitespace-nowrap rounded-full border px-3.5 py-2 text-left text-sm transition lg:rounded-lg lg:border-transparent lg:px-3 lg:py-2.5"
+                  :class="
+                    activeSection === section.id
+                      ? 'border-stone-900 bg-stone-900 text-white lg:border-transparent'
+                      : 'border-stone-200 bg-white text-stone-700 hover:bg-white lg:bg-transparent lg:hover:bg-white'
+                  "
+                  :aria-current="activeSection === section.id ? 'page' : undefined"
+                  @click="selectSection(section.id)"
+                >
+                  <span class="flex-1">{{ section.label }}</span>
+                  <span
+                    v-if="showAllErrors && errorCounts[section.id]"
+                    class="rounded-full bg-rose-500 px-1.5 text-xs font-medium tabular-nums text-white"
+                    :aria-label="`${errorCounts[section.id]} to fix`"
+                  >
+                    {{ errorCounts[section.id] }}
+                  </span>
+                  <span
+                    v-else-if="unpublishedSections.includes(section.id)"
+                    class="h-2 w-2 rounded-full bg-amber-500"
+                    title="Has changes that aren't live yet"
+                    aria-label="Not published yet"
+                  />
+                </button>
+              </li>
+            </ul>
+          </nav>
+
+          <div class="mt-6 hidden space-y-3 border-t border-stone-200 pt-4 text-xs text-stone-500 lg:block">
+            <p v-if="unpublishedSections.length" class="flex items-center gap-2">
+              <span class="h-2 w-2 rounded-full bg-amber-500" />
+              Changes not live yet
+            </p>
+            <p v-if="lastSavedLabel">Draft saved {{ lastSavedLabel }}</p>
+            <p v-if="lastPublishedLabel">Last published {{ lastPublishedLabel }}</p>
+            <button
+              v-if="unpublishedSections.length && !editor.isDeploying.value"
+              type="button"
+              class="inline-flex items-center gap-1.5 font-medium text-stone-600 underline-offset-2 hover:text-rose-700 hover:underline"
+              @click="discardChanges"
+            >
+              <Undo2 :size="14" />
+              Discard unpublished changes
+            </button>
+          </div>
         </aside>
 
-        <section class="space-y-6">
-          <div v-if="message || error" class="border p-4 text-sm space-y-2" :class="statusClass">
-            <p v-if="message" class="font-medium">{{ message }}</p>
-            <p v-if="error" class="text-red-700">{{ error }}</p>
+        <!-- Active section -->
+        <div ref="contentTop" class="grid min-w-0 scroll-mt-24 grid-cols-1 content-start gap-5">
+          <AdminDeployStatus
+            v-if="deployJob"
+            :job="deployJob"
+            :live-url="liveUrl"
+            :can-retry="canPublish"
+            @retry="startPublish"
+            @dismiss="editor.dismissDeployResult()"
+          />
+
+          <div
+            v-if="saveState === 'error'"
+            class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4"
+            role="alert"
+          >
+            <p class="flex items-start gap-2 text-sm text-rose-800">
+              <AlertCircle :size="18" class="mt-0.5 shrink-0" />
+              <span><strong class="font-semibold">Your latest changes aren't saved.</strong> {{ editor.saveError.value }}</span>
+            </p>
+            <button type="button" class="admin-btn-secondary" @click="editor.saveNow()">
+              <RefreshCw :size="16" />
+              Try saving again
+            </button>
           </div>
 
-          <div v-if="activeSection === 'Site'" class="editor-panel">
-            <h2>Site Metadata</h2>
-            <label><span>Name</span><input v-model="content.siteMetadata.name" /></label>
-            <label><span>Established</span><input v-model.number="content.siteMetadata.established" type="number" /></label>
-            <label><span>Location</span><input v-model="content.siteMetadata.location" /></label>
-            <label><span>Short Location</span><input v-model="content.siteMetadata.shortLocation" /></label>
-            <label><span>Tagline</span><input v-model="content.siteMetadata.tagline" /></label>
-            <label><span>Description</span><textarea v-model="content.siteMetadata.description" rows="4" /></label>
+          <div>
+            <h1 class="text-2xl font-semibold tracking-tight">{{ activeDefinition.label }}</h1>
+            <p class="mt-1 text-[15px] text-stone-500">{{ activeDefinition.description }}</p>
           </div>
 
-          <div v-if="activeSection === 'Hero'" class="editor-panel">
-            <h2>Hero</h2>
-            <label><span>Label</span><input v-model="content.hero.label" /></label>
-            <label><span>Primary Title</span><input v-model="content.hero.title.primary" /></label>
-            <label><span>Secondary Title</span><input v-model="content.hero.title.secondary" /></label>
-            <label><span>Description</span><textarea v-model="content.hero.description" rows="4" /></label>
-            <label><span>CTA Label</span><input v-model="content.hero.cta.label" /></label>
-            <label><span>CTA Link</span><input v-model="content.hero.cta.href" /></label>
-            <label><span>Image URL</span><input :value="content.hero.image.src" readonly :class="previewClass(content.hero.image.src)" /></label>
-            <label class="upload-control">
-              <span>Upload Image</span>
-              <input type="file" accept="image/*" :disabled="uploading" @change="uploadImage($event, (url) => content.hero.image.src = url)" />
-              <Upload :size="16" />
-            </label>
-            <div v-if="content.hero.image.src" class="image-preview">
-              <img :src="content.hero.image.src" :alt="content.hero.image.alt || previewAlt(content.hero.title.primary)" />
-            </div>
-            <label><span>Image Alt</span><input v-model="content.hero.image.alt" /></label>
-          </div>
-
-          <div v-if="activeSection === 'Navigation'" class="editor-panel">
-            <div class="section-title">
-              <h2>Navigation</h2>
-              <button @click="addNavigationItem"><Plus :size="16" /> Add</button>
-            </div>
-            <div v-for="(item, index) in content.navigation.items" :key="index" class="repeat-row">
-              <label><span>Label</span><input v-model="item.label" /></label>
-              <label><span>Path</span><input v-model="item.path" /></label>
-              <label><span>Hash</span><input v-model="item.hash" placeholder="optional" /></label>
-              <button class="danger" @click="content.navigation.items.splice(index, 1)"><Trash2 :size="16" /></button>
-            </div>
-          </div>
-
-          <div v-if="activeSection === 'Practice'" class="editor-panel">
-            <label><span>Overview Label</span><input v-model="content.practiceOverview.label" /></label>
-            <label><span>Overview Description</span><textarea v-model="content.practiceOverview.description" rows="3" /></label>
-            <div class="section-title">
-              <h2>Practice Areas</h2>
-              <button @click="addPractice"><Plus :size="16" /> Add</button>
-            </div>
-            <div v-for="(practice, index) in content.practiceAreas" :key="practice.slug" class="collection-card">
-              <div class="section-title">
-                <h3>{{ practice.title }}</h3>
-                <button class="danger" @click="content.practiceAreas.splice(index, 1)"><Trash2 :size="16" /></button>
-              </div>
-              <label><span>ID</span><input v-model="practice.id" /></label>
-              <label><span>Slug</span><input v-model="practice.slug" /></label>
-              <label><span>Title</span><input v-model="practice.title" /></label>
-              <label><span>Description</span><textarea v-model="practice.description" rows="3" /></label>
-              <label><span>Detailed Description</span><textarea v-model="practice.detailedDescription" rows="8" /></label>
-            </div>
-          </div>
-
-          <div v-if="activeSection === 'About'" class="editor-panel">
-            <h2>About</h2>
-            <label><span>Label</span><input v-model="content.about.label" /></label>
-            <label><span>Title</span><input v-model="content.about.title" /></label>
-            <div class="section-title">
-              <h3>Title Lines</h3>
-              <button @click="addString(content.about.titleLines)"><Plus :size="16" /> Add</button>
-            </div>
-            <div v-for="(_, index) in content.about.titleLines" :key="index" class="repeat-row">
-              <input v-model="content.about.titleLines[index]" />
-              <button class="danger" @click="removeString(content.about.titleLines, index)"><Trash2 :size="16" /></button>
-            </div>
-            <div class="section-title">
-              <h3>Description Paragraphs</h3>
-              <button @click="addString(content.about.description)"><Plus :size="16" /> Add</button>
-            </div>
-            <div v-for="(_, index) in content.about.description" :key="index" class="repeat-row">
-              <textarea v-model="content.about.description[index]" rows="4" />
-              <button class="danger" @click="removeString(content.about.description, index)"><Trash2 :size="16" /></button>
-            </div>
-            <label><span>Image URL</span><input :value="content.about.image.src" readonly :class="previewClass(content.about.image.src)" /></label>
-            <label class="upload-control">
-              <span>Upload Image</span>
-              <input type="file" accept="image/*" :disabled="uploading" @change="uploadImage($event, (url) => content.about.image.src = url)" />
-              <Upload :size="16" />
-            </label>
-            <div v-if="content.about.image.src" class="image-preview">
-              <img :src="content.about.image.src" :alt="content.about.image.alt || previewAlt(content.about.title)" />
-            </div>
-            <label><span>Image Alt</span><input v-model="content.about.image.alt" /></label>
-          </div>
-
-          <div v-if="activeSection === 'People'" class="editor-panel">
-            <label><span>Label</span><input v-model="content.people.label" /></label>
-            <label><span>Title</span><input v-model="content.people.title" /></label>
-            <label><span>Description</span><textarea v-model="content.people.description" rows="3" /></label>
-            <div class="section-title">
-              <h2>Members</h2>
-              <button @click="addPerson"><Plus :size="16" /> Add</button>
-            </div>
-            <div v-for="(person, index) in content.people.members" :key="`${person.name}-${index}`" class="collection-card">
-              <div class="section-title">
-                <h3>{{ person.name }}</h3>
-                <button class="danger" @click="content.people.members.splice(index, 1)"><Trash2 :size="16" /></button>
-              </div>
-              <label><span>Name</span><input v-model="person.name" /></label>
-              <label><span>Role</span><input v-model="person.role" /></label>
-              <label><span>Credentials</span><input v-model="person.credentials" /></label>
-              <label><span>Bio</span><textarea v-model="person.bio" rows="6" /></label>
-              <label><span>Image URL</span><input :value="person.image" readonly :class="previewClass(person.image)" /></label>
-              <label class="upload-control">
-                <span>Upload Image</span>
-                <input type="file" accept="image/*" :disabled="uploading" @change="uploadImage($event, (url) => person.image = url)" />
-                <Upload :size="16" />
-              </label>
-              <div v-if="person.image" class="image-preview">
-                <img :src="person.image" :alt="previewAlt(person.name)" />
-              </div>
-            </div>
-          </div>
-
-          <div v-if="activeSection === 'Contact'" class="editor-panel">
-            <h2>Contact</h2>
-            <label><span>Heading</span><input v-model="content.contact.label" /></label>
-            <label><span>Office Label</span><input v-model="content.contact.office.label" /></label>
-            <label><span>Address</span><textarea v-model="content.contact.office.address" rows="4" /></label>
-            <label><span>Communication Label</span><input v-model="content.contact.communication.label" /></label>
-            <label><span>Phone</span><input v-model="content.contact.communication.phone" /></label>
-            <label><span>Email</span><input v-model="content.contact.communication.email" /></label>
-          </div>
-
-          <div v-if="activeSection === 'Footer'" class="editor-panel">
-            <h2>Footer</h2>
-            <label><span>Brand</span><input v-model="content.footer.brand" /></label>
-            <label><span>Copyright</span><input v-model="content.footer.copyright" /></label>
-            <label><span>Back Label</span><input v-model="content.detailPage.backLabel" /></label>
-            <label><span>CTA Label</span><input v-model="content.detailPage.ctaLabel" /></label>
-          </div>
-        </section>
+          <component :is="sectionComponents[activeSection]" :content="content" />
+        </div>
       </main>
+
+      <!-- Mobile action bar -->
+      <div v-if="loadState === 'ready'" class="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white/95 p-3 backdrop-blur lg:hidden">
+        <div class="mx-auto flex max-w-3xl items-center gap-2">
+          <p
+            class="min-w-0 flex-1 truncate text-xs font-medium"
+            :class="{
+              'text-stone-500': status.tone === 'neutral',
+              'text-rose-700': status.tone === 'error',
+              'text-amber-800': status.tone === 'warning',
+              'text-emerald-700': status.tone === 'success'
+            }"
+            role="status"
+          >
+            {{ status.label }}
+          </p>
+          <button type="button" class="admin-btn-secondary sm:hidden" aria-label="Preview" @click="openPreview">
+            <Eye :size="16" />
+          </button>
+          <button type="button" class="admin-btn-primary" :disabled="!canPublish" :title="publishTitle" @click="startPublish">
+            <Loader2 v-if="editor.isDeploying.value" class="animate-spin" :size="16" />
+            <Rocket v-else :size="16" />
+            {{ editor.isDeploying.value ? "Publishing…" : "Publish" }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Session expired -->
+      <div v-if="sessionExpired" class="fixed inset-0 z-[60] grid place-items-center bg-stone-900/40 p-4">
+        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="session-expired-title">
+          <h2 id="session-expired-title" class="text-lg font-semibold">Please sign in again</h2>
+          <p class="mb-5 mt-1 text-sm text-stone-600">For your security you were signed out. Your edits are still here.</p>
+          <AdminLogin :default-email="user.email" @signed-in="onReauthenticated" />
+        </div>
+      </div>
     </div>
+
+    <AdminConfirmDialog />
+    <AdminToastStack />
   </div>
 </template>
-
-<style scoped>
-.editor-panel {
-  color: #334155;
-}
-
-.editor-panel {
-  background: white;
-  border: 1px solid #cbd5e1;
-  display: grid;
-  gap: 1.25rem;
-  padding: 1.5rem;
-}
-
-.editor-panel h2,
-.editor-panel h3 {
-  font-family: Georgia, serif;
-  font-size: 1.5rem;
-  color: #111827;
-}
-
-.editor-panel label {
-  display: grid;
-  gap: 0.5rem;
-}
-
-.editor-panel label span {
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #64748b;
-}
-
-.editor-panel input,
-.editor-panel textarea,
-.repeat-row input,
-.repeat-row textarea {
-  border: 1px solid #cbd5e1;
-  color: #111827;
-  padding: 0.75rem 0.9rem;
-  width: 100%;
-}
-
-.section-title,
-.repeat-row {
-  align-items: center;
-  display: flex;
-  gap: 1rem;
-  justify-content: space-between;
-}
-
-.section-title button,
-.repeat-row button {
-  align-items: center;
-  border: 1px solid #cbd5e1;
-  display: inline-flex;
-  flex-shrink: 0;
-  gap: 0.5rem;
-  padding: 0.65rem 0.85rem;
-  color: #334155;
-}
-
-.collection-card {
-  border: 1px solid #e2e8f0;
-  display: grid;
-  gap: 1rem;
-  padding: 1rem;
-}
-
-.danger {
-  color: #9f1d1d;
-}
-
-.upload-control {
-  align-items: center;
-  border: 1px dashed #94a3b8;
-  cursor: pointer;
-  display: inline-flex;
-  gap: 0.75rem;
-  justify-content: flex-start;
-  max-width: max-content;
-  padding: 0.75rem 0.9rem;
-}
-
-.upload-control input {
-  border: 0;
-  cursor: pointer;
-  padding: 0;
-}
-
-.image-preview {
-  border: 1px solid #cbd5e1;
-  overflow: hidden;
-  max-width: 22rem;
-}
-
-.image-preview img {
-  display: block;
-  width: 100%;
-  max-height: 16rem;
-  object-fit: cover;
-}
-</style>

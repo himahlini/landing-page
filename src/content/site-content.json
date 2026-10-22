@@ -170,7 +170,7 @@
   },
   "footer": {
     "brand": "Himahlini & Co",
-    "copyright": "© CURRENT_YEAR • Kuala Lumpur",
+    "copyright": "© {{CURRENT_YEAR}} • Kuala Lumpur",
     "links": [
       {
         "label": "Privacy",

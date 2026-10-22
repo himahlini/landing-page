@@ -1,4 +1,4 @@
-import { createSSRApp } from "vue";
+import { createApp, createSSRApp } from "vue";
 import { createHead } from "@unhead/vue/client";
 
 import App from "./App.vue";
@@ -12,7 +12,16 @@ declare global {
   }
 }
 
-const app = createSSRApp(App);
+// Admin routes are never prerendered, so the fallback HTML belongs to the home page.
+// Hydrating over it leaves the home page's classes behind, so render the admin from scratch.
+const isAdminRoute = window.location.pathname.startsWith("/admin");
+const rootElement = document.getElementById("root");
+
+if (isAdminRoute && rootElement) {
+  rootElement.innerHTML = "";
+}
+
+const app = isAdminRoute ? createApp(App) : createSSRApp(App);
 const router = createAppRouter(false);
 const head = createHead();
 

@@ -25,7 +25,9 @@ The app uses a Cloudflare Pages fallback rewrite so client-side routes like `/pr
 
 This repo is set up to deploy from GitHub Actions on pushes to `main`.
 
-The CMS `Deploy` button does not wait for the deployment to finish. It saves/publishes the D1 snapshot, dispatches the GitHub workflow, and then shows a simple "deploy started" message.
+The CMS `Publish changes` button saves/publishes the D1 snapshot and dispatches the GitHub workflow. The admin then polls `/api/jobs/:id`, which looks up the matching `workflow_dispatch` run through the GitHub API (using the same `GITHUB_DEPLOY_TOKEN`; its Actions write permission already covers reading runs) to show queued/building/live/failed progress. Only one publish can run at a time because the workflow cancels in-progress runs.
+
+Edits in `/admin` autosave to the D1 draft snapshot, and `/admin/preview` renders that draft.
 
 Required GitHub repository variable values for the workflow:
 

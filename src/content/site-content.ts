@@ -44,8 +44,21 @@ const normalizeNavigationItem = (item: NavigationItemInput): SiteContent["naviga
   };
 };
 
+export const currentYearToken = "{{CURRENT_YEAR}}";
+
+const currentYearPattern = /\{\{\s*CURRENT_YEAR\s*\}\}/g;
+// Content saved before placeholders had delimiters used a bare CURRENT_YEAR.
+const legacyCurrentYearPattern = /(?<!\{\{\s*)\bCURRENT_YEAR\b(?!\s*\}\})/g;
+
+export const formatCopyright = (copyright: string, year = new Date().getFullYear()) =>
+  copyright.replace(currentYearPattern, String(year)).replace(/\bCURRENT_YEAR\b/g, String(year));
+
 export const normalizeSiteContent = (content: SiteContentInput): SiteContent => ({
   ...content,
+  footer: {
+    ...content.footer,
+    copyright: content.footer.copyright.replace(legacyCurrentYearPattern, currentYearToken)
+  },
   navigation: {
     ...content.navigation,
     items: content.navigation.items.map((item) => ({

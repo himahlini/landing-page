@@ -1,4 +1,5 @@
 import { randomId } from "./crypto";
+import { findWorkflowRunProgress, type DeployStage } from "./github";
 import type { CmsEnv, CmsJob } from "./types";
 
 const nowIso = () => new Date().toISOString();
@@ -59,6 +60,54 @@ export const updateJob = async (env: CmsEnv, jobId: string, input: UpdateJobInpu
 
 export const getJob = async (env: CmsEnv, jobId: string) =>
   env.DB.prepare("SELECT * FROM cms_jobs WHERE id = ?").bind(jobId).first<CmsJob>();
+
+export const getLatestJob = async (env: CmsEnv, type: CmsJob["type"]) =>
+  env.DB.prepare("SELECT * FROM cms_jobs WHERE type = ? ORDER BY created_at DESC LIMIT 1").bind(type).first<CmsJob>();
+
+const deployTimeoutMs = 40 * 60 * 1000;
+
+export type JobView = CmsJob & {
+  stage: DeployStage;
+  run_url: string | null;
+};
+
+const stageForStatus = (status: CmsJob["status"]): DeployStage =>
+  status === "success" ? "success" : status === "failed" ? "failed" : "queued";
+
+// Refreshes a running deploy job from its GitHub Actions run so the admin can show real progress.
+export const syncDeployJob = async (env: CmsEnv, job: CmsJob): Promise<JobView> => {
+  if (job.type !== "deploy" || (job.status !== "running" && job.status !== "queued")) {
+    return { ...job, stage: stageForStatus(job.status), run_url: null };
+  }
+
+  const progress = await findWorkflowRunProgress(env, job.created_at).catch(() => null);
+
+  if (progress?.stage === "success" || progress?.stage === "failed") {
+    const status = progress.stage;
+    await updateJob(env, job.id, {
+      status,
+      message:
+        status === "success"
+          ? "Deployment finished."
+          : `GitHub Actions run finished with conclusion "${progress.conclusion ?? "unknown"}".`,
+      completed: true
+    });
+    const updated = (await getJob(env, job.id)) ?? job;
+    return { ...updated, stage: status, run_url: progress.runUrl };
+  }
+
+  if (!progress && Date.now() - new Date(job.created_at).getTime() > deployTimeoutMs) {
+    await updateJob(env, job.id, {
+      status: "failed",
+      message: "No finished GitHub Actions run was found for this deploy within 40 minutes.",
+      completed: true
+    });
+    const updated = (await getJob(env, job.id)) ?? job;
+    return { ...updated, stage: "failed", run_url: null };
+  }
+
+  return { ...job, stage: progress?.stage ?? "queued", run_url: progress?.runUrl ?? null };
+};
 
 export const triggerDeployHook = async (hookUrl: string | undefined, payload: unknown) => {
   if (!hookUrl) {
